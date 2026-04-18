@@ -1,0 +1,408 @@
+/* clarity/content/adapter.css */
+/* Progressive UI adaptation styles injected into every page */
+
+/* ── CSS Variables ─────────────────────────────────────────────────────────── */
+:root {
+  --clarity-font-scale: 1;
+  --clarity-line-height: 1;
+  --clarity-letter-spacing: 0em;
+  --clarity-bg-overlay: transparent;
+  --clarity-contrast: 100%;
+  --clarity-anim-scale: 1;
+}
+
+/* ── Level 1: Mild — subtle adjustments ────────────────────────────────────── */
+html.clarity-level-1 body {
+  font-size: calc(1em * var(--clarity-font-scale) * 1.02) !important;
+  line-height: calc(1.5 * var(--clarity-line-height)) !important;
+}
+html.clarity-level-1 * {
+  animation-duration: calc(var(--clarity-anim-scale) * 0.7) !important;
+  transition-duration: calc(var(--clarity-anim-scale) * 0.7) !important;
+}
+
+/* ── Level 2: Moderate — clear simplification ──────────────────────────────── */
+html.clarity-level-2 body {
+  font-size: calc(1em * var(--clarity-font-scale) * 1.08) !important;
+  line-height: calc(1.7 * var(--clarity-line-height)) !important;
+  letter-spacing: 0.02em !important;
+}
+html.clarity-level-2 * {
+  animation-duration: 0.1ms !important;
+  animation-delay: 0.1ms !important;
+  transition-duration: 0.1ms !important;
+}
+/* Reduce visual noise: hide non-essential decorative elements */
+html.clarity-level-2 [class*="ad-"],
+html.clarity-level-2 [id*="ad-"],
+html.clarity-level-2 [class*="banner"],
+html.clarity-level-2 [class*="promo"],
+html.clarity-level-2 iframe:not([src*="youtube"]):not([src*="vimeo"]) {
+  opacity: 0.15 !important;
+  pointer-events: none !important;
+}
+
+/* ── Level 3: High fatigue — maximum simplification ────────────────────────── */
+html.clarity-level-3 body {
+  font-size: calc(1em * var(--clarity-font-scale) * 1.16) !important;
+  line-height: calc(1.9 * var(--clarity-line-height)) !important;
+  letter-spacing: 0.03em !important;
+}
+html.clarity-level-3 * {
+  animation: none !important;
+  transition: none !important;
+}
+html.clarity-level-3 [class*="ad-"],
+html.clarity-level-3 [id*="ad-"],
+html.clarity-level-3 [class*="banner"],
+html.clarity-level-3 [class*="promo"],
+html.clarity-level-3 [class*="sidebar"],
+html.clarity-level-3 [class*="widget"],
+html.clarity-level-3 iframe:not([src*="youtube"]):not([src*="vimeo"]) {
+  display: none !important;
+}
+/* Add a subtle warm overlay to reduce eye strain */
+html.clarity-level-3::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 240, 210, 0.06);
+  pointer-events: none;
+  z-index: 9998;
+}
+
+/* ── Focus Mode ─────────────────────────────────────────────────────────────── */
+html.clarity-focus body {
+  max-width: 760px !important;
+  margin: 0 auto !important;
+  font-size: calc(1.1em * var(--clarity-font-scale)) !important;
+  line-height: 1.85 !important;
+  letter-spacing: 0.025em !important;
+  word-spacing: 0.05em !important;
+  color: #1a1a1a !important;
+  background: #faf9f6 !important;
+}
+
+html.clarity-focus * {
+  font-family: 'Georgia', 'Times New Roman', serif !important;
+  max-width: 100% !important;
+}
+
+html.clarity-focus h1, html.clarity-focus h2, html.clarity-focus h3 {
+  font-size: calc(1.3em * var(--clarity-font-scale)) !important;
+  line-height: 1.4 !important;
+  margin-bottom: 0.6em !important;
+}
+
+html.clarity-focus nav,
+html.clarity-focus footer,
+html.clarity-focus aside,
+html.clarity-focus [class*="sidebar"],
+html.clarity-focus [class*="ad"],
+html.clarity-focus [class*="social"],
+html.clarity-focus [class*="share"],
+html.clarity-focus [class*="comment"],
+html.clarity-focus [class*="widget"],
+html.clarity-focus [class*="promo"],
+html.clarity-focus [class*="popup"],
+html.clarity-focus [class*="modal"],
+html.clarity-focus [class*="banner"] {
+  display: none !important;
+}
+
+html.clarity-focus img {
+  max-width: 100% !important;
+  height: auto !important;
+  border-radius: 8px !important;
+  margin: 1em 0 !important;
+}
+
+/* Focus toolbar */
+#clarity-focus-toolbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 999999;
+  background: #1a1a2e;
+  color: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 13px;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+}
+
+.clarity-focus-label {
+  color: #7dd3fc;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.clarity-focus-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.clarity-focus-controls button {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #e2e8f0;
+  padding: 4px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+
+.clarity-focus-controls button:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+#clarity-focus-exit {
+  background: rgba(239, 68, 68, 0.2) !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+  color: #fca5a5 !important;
+}
+
+html.clarity-focus body {
+  padding-top: 52px !important;
+}
+
+/* ── Toast notifications ────────────────────────────────────────────────────── */
+.clarity-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 999999;
+  background: #0f172a;
+  color: #e2e8f0;
+  border: 1px solid rgba(125, 211, 252, 0.2);
+  border-radius: 14px;
+  padding: 16px 18px;
+  max-width: 340px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(125,211,252,0.05);
+  font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  opacity: 0;
+  transform: translateY(16px) scale(0.97);
+  transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.clarity-toast--visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.clarity-toast-icon {
+  font-size: 20px;
+  color: #7dd3fc;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.clarity-toast-body {
+  flex: 1;
+}
+
+.clarity-toast-msg {
+  margin: 0 0 10px;
+  color: #cbd5e1;
+}
+
+.clarity-toast-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.clarity-toast-btn {
+  background: #1e40af;
+  color: #bfdbfe;
+  border: none;
+  padding: 5px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: background 0.15s;
+}
+
+.clarity-toast-btn:hover {
+  background: #2563eb;
+}
+
+.clarity-toast-dismiss {
+  background: transparent;
+  color: #64748b;
+  border: 1px solid rgba(100,116,139,0.3);
+  padding: 5px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.15s;
+}
+
+.clarity-toast-dismiss:hover {
+  border-color: rgba(100,116,139,0.6);
+  color: #94a3b8;
+}
+
+.clarity-toast-close {
+  background: transparent;
+  border: none;
+  color: #475569;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+
+.clarity-toast-close:hover {
+  color: #94a3b8;
+}
+
+/* ── Summary overlay ────────────────────────────────────────────────────────── */
+#clarity-summary-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999999;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(6px);
+  animation: clarityFadeIn 0.2s ease;
+}
+
+@keyframes clarityFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+#clarity-summary-panel {
+  background: #0f172a;
+  border: 1px solid rgba(125, 211, 252, 0.15);
+  border-radius: 20px;
+  padding: 32px 36px;
+  max-width: 600px;
+  width: 90vw;
+  max-height: 80vh;
+  overflow-y: auto;
+  color: #e2e8f0;
+  font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+  animation: claritySlideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes claritySlideUp {
+  from { transform: translateY(20px) scale(0.98); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.clarity-summary-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.clarity-summary-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #7dd3fc;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.clarity-summary-close {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #94a3b8;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.clarity-summary-close:hover {
+  background: rgba(255,255,255,0.1);
+  color: #e2e8f0;
+}
+
+.clarity-summary-content {
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.clarity-summary-content h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0 0 16px;
+}
+
+.clarity-summary-content ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.clarity-summary-content li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  background: rgba(125, 211, 252, 0.05);
+  border: 1px solid rgba(125, 211, 252, 0.08);
+  border-radius: 10px;
+  color: #cbd5e1;
+}
+
+.clarity-summary-content li::before {
+  content: '◦';
+  color: #7dd3fc;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.clarity-summary-loading {
+  text-align: center;
+  padding: 40px;
+  color: #7dd3fc;
+}
+
+.clarity-summary-loading-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: #7dd3fc;
+  border-radius: 50%;
+  margin: 0 4px;
+  animation: clarityPulse 1.2s ease-in-out infinite;
+}
+
+.clarity-summary-loading-dot:nth-child(2) { animation-delay: 0.2s; }
+.clarity-summary-loading-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes clarityPulse {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Clarity</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="app">
+
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">
+        <div class="logo-mark">◎</div>
+        <span class="logo-text">Clarity</span>
+      </div>
+      <div class="status-pill" id="status-pill">Monitoring</div>
+    </header>
+
+    <!-- Fatigue Gauge -->
+    <section class="gauge-section">
+      <div class="gauge-wrap">
+        <svg class="gauge-svg" viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg">
+          <!-- Track -->
+          <path class="gauge-track" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke-width="12" stroke-linecap="round"/>
+          <!-- Fill -->
+          <path class="gauge-fill" id="gauge-fill" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke-width="12" stroke-linecap="round" stroke-dasharray="251.2" stroke-dashoffset="251.2"/>
+          <!-- Needle -->
+          <circle class="gauge-center" cx="100" cy="100" r="5"/>
+          <line class="gauge-needle" id="gauge-needle" x1="100" y1="100" x2="100" y2="30"/>
+        </svg>
+        <div class="gauge-value">
+          <span class="gauge-score" id="gauge-score">0</span>
+          <span class="gauge-label" id="gauge-label">Normal</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Metrics Grid -->
+    <section class="metrics">
+      <div class="metric-card">
+        <span class="metric-icon">⌨</span>
+        <div class="metric-body">
+          <span class="metric-value" id="m-wpm">—</span>
+          <span class="metric-name">WPM</span>
+        </div>
+      </div>
+      <div class="metric-card">
+        <span class="metric-icon">⚠</span>
+        <div class="metric-body">
+          <span class="metric-value" id="m-error">—</span>
+          <span class="metric-name">Error Rate</span>
+        </div>
+      </div>
+      <div class="metric-card">
+        <span class="metric-icon">↕</span>
+        <div class="metric-body">
+          <span class="metric-value" id="m-scroll">—</span>
+          <span class="metric-name">Scroll Var</span>
+        </div>
+      </div>
+      <div class="metric-card">
+        <span class="metric-icon">⌖</span>
+        <div class="metric-body">
+          <span class="metric-value" id="m-jitter">—</span>
+          <span class="metric-name">Cursor Jitter</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Divider -->
+    <div class="divider"></div>
+
+    <!-- Actions -->
+    <section class="actions">
+      <button class="action-btn action-btn--primary" id="btn-focus">
+        <span class="action-icon">◈</span>
+        <div class="action-body">
+          <span class="action-title">Focus Mode</span>
+          <span class="action-desc">Simplify page typography & layout</span>
+        </div>
+        <div class="action-toggle" id="focus-toggle">
+          <div class="toggle-thumb"></div>
+        </div>
+      </button>
+
+      <button class="action-btn" id="btn-summarize">
+        <span class="action-icon">◉</span>
+        <div class="action-body">
+          <span class="action-title">Summarise Page</span>
+          <span class="action-desc">Get AI bullet-point summary</span>
+        </div>
+        <span class="action-arrow">→</span>
+      </button>
+
+      <button class="action-btn" id="btn-reset">
+        <span class="action-icon">↺</span>
+        <div class="action-body">
+          <span class="action-title">Reset Session</span>
+          <span class="action-desc">Restart fatigue tracking</span>
+        </div>
+        <span class="action-arrow">→</span>
+      </button>
+    </section>
+
+    <!-- Session info -->
+    <footer class="footer">
+      <span id="session-time">Session: 0 min</span>
+      <span class="dot-sep">·</span>
+      <span id="adaptation-level">Level: Normal</span>
+    </footer>
+
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
