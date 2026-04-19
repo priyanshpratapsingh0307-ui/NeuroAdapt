@@ -10,6 +10,33 @@
   const elementRegistry = [];
   let lastClassifications = [];
 
+  // ── YouTube detection ─────────────────────────────────────────────────────
+  function isYouTubePage() {
+    return window.location.host.includes('youtube.com');
+  }
+
+  function isYouTubeWatchPage() {
+    return isYouTubePage() && window.location.pathname.includes('/watch');
+  }
+
+  // YouTube-protected element IDs/selectors that should NEVER be hidden
+  const YOUTUBE_PROTECTED = [
+    'movie_player', 'player', 'player-container', 'player-container-inner',
+    'player-container-outer', 'ytd-player', 'above-the-fold',
+    'info-contents', 'meta-contents', 'watch-metadata',
+  ];
+
+  function isYouTubeProtected(el) {
+    if (!isYouTubePage()) return false;
+    // Protect the element if it IS or CONTAINS the video player
+    if (el.id && YOUTUBE_PROTECTED.includes(el.id)) return true;
+    if (el.tagName === 'VIDEO') return true;
+    if (el.tagName === 'YTD-PLAYER') return true;
+    if (el.tagName === 'YTD-WATCH-FLEXY') return true;
+    if (el.querySelector && el.querySelector('video, #movie_player')) return true;
+    return false;
+  }
+
   // ── Build DOM snapshot ───────────────────────────────────────────────────────
   function buildSnapshot() {
     elementRegistry.length = 0;
@@ -48,6 +75,7 @@
         offsetTop: Math.round(rect.top + window.scrollY),
         height: Math.round(rect.height),
         aboveFold: rect.top < window.innerHeight,
+        isYouTubeProtected: isYouTubeProtected(el),
       });
     });
 
@@ -66,25 +94,49 @@
       if (el.id === 'clarity-focus-toolbar') return;
 
       // Clear previous classes first
-      el.classList.remove('clarity-distraction-hidden', 'clarity-distraction-dimmed', 'clarity-highlight', 'clarity-essential');
+      el.classList.remove(
+        'clarity-distraction-hidden',
+        'clarity-distraction-dimmed',
+        'clarity-distraction-supplementary',
+        'clarity-highlight',
+        'clarity-essential'
+      );
+
+      // YouTube video player must NEVER be dimmed
+      if (isYouTubeProtected(el)) {
+        el.classList.add('clarity-essential');
+        return;
+      }
 
       if (classification === 'distraction') {
-        el.classList.add('clarity-distraction-hidden');
-      } else if (classification === 'supplementary') {
         el.classList.add('clarity-distraction-dimmed');
+      } else if (classification === 'supplementary') {
+        el.classList.add('clarity-distraction-supplementary');
       } else if (classification === 'highlight') {
         el.classList.add('clarity-highlight');
       } else if (classification === 'essential') {
         el.classList.add('clarity-essential');
       }
     });
+
+    // Remove the scanning overlay now that classification is done
+    document.documentElement.classList.remove('clarity-focus-scanning');
   }
 
   // ── Restore all elements ─────────────────────────────────────────────────────
   function restoreAll() {
     elementRegistry.forEach(({ el }) => {
-      el.classList.remove('clarity-distraction-hidden', 'clarity-distraction-dimmed', 'clarity-highlight', 'clarity-essential');
+      el.classList.remove(
+        'clarity-distraction-hidden',
+        'clarity-distraction-dimmed',
+        'clarity-distraction-supplementary',
+        'clarity-highlight',
+        'clarity-essential'
+      );
     });
+    document.documentElement.classList.remove(
+      'clarity-focus', 'clarity-focus-scanning'
+    );
   }
 
   // ── Re-apply stored classifications ──────────────────────────────────────────
@@ -99,6 +151,9 @@
     switch (msg.type) {
 
       case 'REQUEST_DOM_SNAPSHOT': {
+        // Add scanning overlay to indicate AI is working
+        document.documentElement.classList.add('clarity-focus', 'clarity-focus-scanning');
+
         const elements = buildSnapshot();
         chrome.runtime.sendMessage({ type: 'DOM_SNAPSHOT', elements }).catch(() => {});
         break;

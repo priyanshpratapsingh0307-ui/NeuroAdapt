@@ -13,5 +13,8 @@ pydantic-settings==2.2.1
 # ─── AI (Ollama via HTTP — no SDK needed) ─────────────────
 httpx==0.27.0
 
+# ─── YouTube Transcript ───────────────────────────────────
+youtube-transcript-api>=1.2.0
+
 # ─── Config ───────────────────────────────────────────────
 python-dotenv==1.0.1

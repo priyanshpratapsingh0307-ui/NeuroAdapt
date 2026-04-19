@@ -106,89 +106,163 @@ html.clarity-level-3::before {
 }
 
 
-/* ── Focus Mode ─────────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════════════
+   FOCUS MODE — AI-DRIVEN CLASSIFICATION
+   ──────────────────────────────────────────────────────────────────────────────
+   The key design: we do NOT blanket-dim everything. Instead, we show a subtle
+   "scanning" overlay while the AI analyses the page, then use per-element
+   classification classes to dim only what the AI considers a distraction.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Phase 1: "Scanning" overlay while AI is analysing ────────────────────── */
+html.clarity-focus-scanning::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.35);
+  z-index: 99990;
+  pointer-events: none;
+  animation: clarityPulseOverlay 1.8s ease-in-out infinite;
+}
+
+@keyframes clarityPulseOverlay {
+  0%, 100% { background: rgba(15, 23, 42, 0.35); }
+  50%       { background: rgba(15, 23, 42, 0.20); }
+}
+
+html.clarity-focus-scanning::before {
+  content: '◎ AI is analysing this page…';
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 99991;
+  background: #0f172a;
+  color: #7dd3fc;
+  font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 20px;
+  border-radius: 20px;
+  border: 1px solid rgba(125, 211, 252, 0.25);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  letter-spacing: 0.03em;
+  pointer-events: none;
+}
+
+/* ── Phase 2: Active focus — NO blanket dimming. Per-element classes decide. ─ */
 html.clarity-focus body {
-  margin: 0 auto !important;
-  font-size: calc(1.1em * var(--clarity-font-scale)) !important;
-  line-height: 1.85 !important;
-  letter-spacing: 0.025em !important;
-  word-spacing: 0.05em !important;
-  color: #1a1a1a !important;
-  background: #111111 !important; /* Dark theater background */
-  position: relative;
+  /* Subtle dark tint so classified elements pop against it */
+  background: #0e1117 !important;
+  transition: background 0.6s ease !important;
 }
 
-/* The Theatre Effect: Dim everything that isn't essential */
-html.clarity-focus body > * {
-  opacity: 0.15 !important;
-  filter: blur(2px) grayscale(0.8) !important;
-  transition: all 0.5s ease !important;
+/* ── AI CLASSIFICATION CLASSES ─────────────────────────────────────────────── */
+
+/* DISTRACTION: dimmed and de-interactive */
+.clarity-distraction-dimmed {
+  opacity: 0.08 !important;
   pointer-events: none !important;
+  filter: grayscale(0.9) blur(2px) !important;
+  transition: all 0.5s ease !important;
 }
 
-/* Keep essential content, highlights, and sidebar/popups bright and clear */
-html.clarity-focus body > article,
-html.clarity-focus body > main,
-html.clarity-focus body > [role="main"],
-html.clarity-focus body > .article,
-html.clarity-focus body > .post-content,
-html.clarity-focus body > .clarity-highlight,
-html.clarity-focus body > .clarity-essential,
-html.clarity-focus .clarity-highlight,
-html.clarity-focus .clarity-essential,
-html.clarity-focus #clarity-focus-toolbar,
-html.clarity-focus .clarity-toast,
-html.clarity-focus #clarity-summary-overlay {
-  opacity: 1 !important;
-  filter: none !important;
-  background: #faf9f6 !important; /* Bright paper for main content */
-  padding: 40px !important;
-  border-radius: 12px !important;
-  box-shadow: 0 0 100px rgba(0,0,0,0.5) !important;
-  margin-top: 20px !important;
-  margin-bottom: 20px !important;
-  pointer-events: auto !important;
-  position: relative;
-  z-index: 10;
-  max-width: 850px !important; /* Slightly wider readable width */
-  margin-left: auto !important;
-  margin-right: auto !important;
-}
-
-html.clarity-focus * {
-  font-family: 'SF Pro Text', 'Georgia', serif !important;
-}
-
-html.clarity-focus h1, html.clarity-focus h2, html.clarity-focus h3 {
-  font-size: calc(1.3em * var(--clarity-font-scale)) !important;
-  line-height: 1.4 !important;
-  margin-bottom: 0.6em !important;
-}
-
-html.clarity-focus nav,
-html.clarity-focus footer,
-html.clarity-focus aside,
-html.clarity-focus [class*="sidebar"],
-html.clarity-focus [class*="ad"],
-html.clarity-focus [class*="social"],
-html.clarity-focus [class*="share"],
-html.clarity-focus [class*="comment"],
-html.clarity-focus [class*="widget"],
-html.clarity-focus [class*="promo"],
-html.clarity-focus [class*="popup"],
-html.clarity-focus [class*="modal"],
-html.clarity-focus [class*="banner"] {
+/* DISTRACTION: completely hidden */
+.clarity-distraction-hidden {
   display: none !important;
 }
 
-html.clarity-focus img {
-  max-width: 100% !important;
-  height: auto !important;
-  border-radius: 8px !important;
-  margin: 1em 0 !important;
+/* ESSENTIAL: stays fully visible and clear */
+.clarity-essential {
+  opacity: 1 !important;
+  filter: none !important;
+  pointer-events: auto !important;
+  position: relative !important;
+  z-index: 10 !important;
+  transition: opacity 0.4s ease, filter 0.4s ease !important;
 }
 
-/* Focus toolbar */
+/* In focus mode, give essential content a subtle spotlight effect */
+html.clarity-focus .clarity-essential {
+  border-radius: 8px !important;
+  box-shadow: 0 0 40px rgba(125, 211, 252, 0.06) !important;
+}
+
+/* HIGHLIGHT: key info the AI thinks is most important */
+.clarity-highlight {
+  opacity: 1 !important;
+  filter: none !important;
+  pointer-events: auto !important;
+  position: relative !important;
+  z-index: 11 !important;
+  border: 2px solid rgba(125, 211, 252, 0.35) !important;
+  background: rgba(125, 211, 252, 0.03) !important;
+  box-shadow: 0 0 25px rgba(125, 211, 252, 0.12) !important;
+  border-radius: 8px !important;
+  transition: all 0.4s ease !important;
+}
+
+.clarity-highlight::before {
+  content: '★ KEY CONTENT';
+  position: absolute;
+  top: -12px;
+  right: 20px;
+  background: #7dd3fc;
+  color: #0f172a;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.1em;
+  z-index: 12;
+}
+
+/* SUPPLEMENTARY: visible but slightly faded */
+.clarity-distraction-supplementary {
+  opacity: 0.35 !important;
+  filter: grayscale(0.3) !important;
+  pointer-events: auto !important;
+  transition: all 0.4s ease !important;
+}
+
+.clarity-distraction-supplementary:hover {
+  opacity: 0.9 !important;
+  filter: none !important;
+}
+
+
+/* ── YouTube-specific: always keep the video player visible ────────────────── */
+html.clarity-focus #movie_player,
+html.clarity-focus .html5-video-player,
+html.clarity-focus ytd-watch-flexy #player,
+html.clarity-focus ytd-player,
+html.clarity-focus #player-container-outer,
+html.clarity-focus #player-container-inner,
+html.clarity-focus #player-container,
+html.clarity-focus video,
+html.clarity-focus #above-the-fold,
+html.clarity-focus ytd-watch-metadata,
+html.clarity-focus #info-contents {
+  opacity: 1 !important;
+  filter: none !important;
+  pointer-events: auto !important;
+  z-index: 10 !important;
+  position: relative !important;
+}
+
+/* Override: NeuroAdapt's own injected elements must always be visible */
+html.clarity-focus .clarity-toast,
+html.clarity-focus #clarity-focus-toolbar,
+html.clarity-focus #clarity-summary-overlay,
+html.clarity-focus .clarity-breathing-overlay {
+  opacity: 1 !important;
+  filter: none !important;
+  pointer-events: auto !important;
+  z-index: 999999 !important;
+}
+
+
+/* ── Focus toolbar ──────────────────────────────────────────────────────────── */
 #clarity-focus-toolbar {
   position: fixed;
   top: 0;
@@ -239,9 +313,11 @@ html.clarity-focus img {
   color: #fca5a5 !important;
 }
 
+/* Focus mode line scale support */
 html.clarity-focus body {
-  padding-top: 52px !important;
+  line-height: calc(1.85 * var(--clarity-line-scale)) !important;
 }
+
 
 /* ── Toast notifications ────────────────────────────────────────────────────── */
 .clarity-toast {
@@ -478,55 +554,6 @@ html.clarity-focus body {
   50% { opacity: 1; transform: scale(1.2); }
 }
 
-/* ── AI Distraction Agent classes ───────────────────────────────────────────── */
-.clarity-distraction-hidden {
-  display: none !important;
-}
-
-.clarity-distraction-dimmed {
-  opacity: 0.08 !important;
-  pointer-events: none !important;
-  filter: grayscale(0.9) blur(2px) !important;
-  transition: all 0.5s ease !important;
-}
-
-/* Essential content stays fully visible and clear */
-.clarity-essential {
-  opacity: 1 !important;
-  filter: none !important;
-  pointer-events: auto !important;
-  position: relative !important;
-  z-index: 10 !important;
-}
-
-/* ── AI Highlight Style ─────────────────────────────────────────────────── */
-.clarity-highlight {
-  border: 2px solid rgba(125, 211, 252, 0.4) !important;
-  background: rgba(125, 211, 252, 0.03) !important;
-  box-shadow: 0 0 25px rgba(125, 211, 252, 0.15) !important;
-  transform: scale(1.01);
-  transition: all 0.4s ease !important;
-}
-
-.clarity-highlight::before {
-  content: '★ IMPORTANT';
-  position: absolute;
-  top: -12px;
-  right: 20px;
-  background: #7dd3fc;
-  color: #0f172a;
-  font-size: 10px;
-  font-weight: 800;
-  padding: 2px 8px;
-  border-radius: 4px;
-  letter-spacing: 0.1em;
-  z-index: 11;
-}
-
-/* Focus mode line scale support ─────────────────────────────────────────────── */
-html.clarity-focus body {
-  line-height: calc(1.85 * var(--clarity-line-scale)) !important;
-}
 
 /* ── Breathing Exercise Overlay ─────────────────────────────────────────────── */
 .clarity-breathing-overlay {
@@ -560,3 +587,27 @@ html.clarity-focus body {
   color: #1f2937;
   text-align: center;
 }
+
+/* ── Range Input ───────────────────────────────────────────────────────────── */
+input[type=range] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: #263347;
+  outline: none;
+  cursor: pointer;
+}
+
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #3AAAD4;
+  border: 2px solid #121A2B;
+  cursor: pointer;
+  transition: transform .15s;
+}
+
+input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }

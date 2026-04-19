@@ -43,10 +43,16 @@ const barRage = $('bar-rage');
 const focusToggle = $('focus-toggle');
 const focusStatus = $('focus-status');
 const summarizeBtn = $('summarize-btn');
-const btnReset = $('btn-reset');
+const btnReset = $('btn-reset'); // Moved to settings
 const settingsBtn = $('settings-btn');
 const settingsOverlay = $('settings-overlay');
 const settingsClose = $('settings-close');
+
+// Timer
+const btnStartTimer = $('btn-start-timer');
+const btnStopTimer = $('btn-stop-timer');
+const timerInput = $('timer-input');
+const timerStatus = $('timer-status');
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ── CORE LOGIC ────────────────────────────────══════════════════════════════════
@@ -95,7 +101,7 @@ function updateGauge(score) {
  */
 function updateMetrics(m) {
   if (!m) return;
-  
+
   // Update Values
   if (mWpm) mWpm.textContent = m.wpm || '0';
   if (mError) mError.textContent = Math.round((m.errorRate || 0) * 100);
@@ -117,16 +123,104 @@ function updateMetrics(m) {
 focusToggle?.addEventListener('change', () => {
   const active = focusToggle.checked;
   focusModeActive = active;
-  if (focusStatus) focusStatus.textContent = active ? 'On — AI cleaning page' : 'Off — distractions allowed';
-  
   chrome.storage.local.set({ focusModeActive: active });
+
   if (active) {
+    if (focusStatus) focusStatus.textContent = 'Scanning — AI is analysing page…';
     chrome.runtime.sendMessage({ type: 'COMMAND_FOCUS_MODE' });
-    if (activeTabId) chrome.tabs.sendMessage(activeTabId, { type: 'REQUEST_DOM_SNAPSHOT' }).catch(() => { });
+    if (activeTabId) {
+      chrome.tabs.sendMessage(activeTabId, { type: 'REQUEST_DOM_SNAPSHOT' }).catch(() => {});
+    }
+
+    // If on YouTube, also auto-trigger video summary
+    if (pageContext.url && (pageContext.url.includes('youtube.com/watch') || pageContext.url.includes('youtu.be/'))) {
+      if (focusStatus) focusStatus.textContent = 'On — Summarising video…';
+      runYouTubeSummary();
+    }
   } else {
+    if (focusStatus) focusStatus.textContent = 'Off — distractions allowed';
     chrome.runtime.sendMessage({ type: 'COMMAND_DEACTIVATE_FOCUS' });
-    if (activeTabId) chrome.tabs.sendMessage(activeTabId, { type: 'RESTORE_DISTRACTIONS' }).catch(() => { });
+    if (activeTabId) {
+      chrome.tabs.sendMessage(activeTabId, { type: 'RESTORE_DISTRACTIONS' }).catch(() => {});
+    }
   }
+});
+
+/**
+ * YouTube Transcript Summary
+ * Fetches the video transcript via the backend, sends it to the LLM,
+ * and displays a detailed summary overlay.
+ */
+async function runYouTubeSummary() {
+  try {
+    const summary = await callBackend({
+      mode: 'summarise',
+      pageTitle: pageContext.title || document.title,
+      pageText: pageContext.url,  // Backend detects YouTube URL and fetches transcript
+      userMessage: 'summarise this video in detail'
+    });
+    showSummaryOverlay(summary);
+    if (focusStatus) focusStatus.textContent = 'On — AI cleaning page';
+  } catch (err) {
+    console.error('[NeuroAdapt] YouTube summary failed:', err);
+    if (focusStatus) focusStatus.textContent = 'On — AI cleaning page';
+  }
+}
+
+/**
+ * Deep Focus Timer
+ */
+let deepFocusInterval = null;
+let deepFocusEndTime = 0;
+
+btnStartTimer?.addEventListener('click', () => {
+  const mins = parseInt(timerInput.value, 10);
+  if (isNaN(mins) || mins <= 0) return;
+
+  deepFocusEndTime = Date.now() + mins * 60000;
+  btnStartTimer.style.display = 'none';
+  timerInput.style.display = 'none';
+  btnStopTimer.style.display = 'inline-block';
+
+  if (!focusModeActive) {
+    focusToggle.checked = true;
+    focusToggle.dispatchEvent(new Event('change'));
+  }
+
+  deepFocusInterval = setInterval(() => {
+    const remaining = deepFocusEndTime - Date.now();
+    if (remaining <= 0) {
+      clearInterval(deepFocusInterval);
+      timerStatus.textContent = 'Session complete! Breathing started...';
+      btnStartTimer.style.display = 'inline-block';
+      timerInput.style.display = 'inline-block';
+      btnStopTimer.style.display = 'none';
+
+      // Trigger breathing exercise via content script
+      if (activeTabId) {
+        chrome.tabs.sendMessage(activeTabId, { type: 'TRIGGER_BREATHING_EXERCISE' }).catch(() => { });
+      }
+
+      // Deactivate focus mode
+      focusToggle.checked = false;
+      focusToggle.dispatchEvent(new Event('change'));
+    } else {
+      const m = Math.floor(remaining / 60000);
+      const s = Math.floor((remaining % 60000) / 1000);
+      timerStatus.textContent = `Deep work: ${m}m ${s}s remaining`;
+    }
+  }, 1000);
+
+  // Trigger initial visual update immediately
+  timerStatus.textContent = `Deep work: ${mins}m 0s remaining`;
+});
+
+btnStopTimer?.addEventListener('click', () => {
+  clearInterval(deepFocusInterval);
+  // timerStatus.textContent = 'Set duration for deep work';
+  btnStartTimer.style.display = 'inline-block';
+  timerInput.style.display = 'inline-block';
+  btnStopTimer.style.display = 'none';
 });
 
 /**
@@ -173,13 +267,22 @@ async function runSummarize() {
   if (summarizeBtn.classList.contains('loading')) return;
   summarizeBtn.classList.add('loading');
   const originalText = summarizeBtn.querySelector('.action-desc').textContent;
-  summarizeBtn.querySelector('.action-desc').textContent = 'AI is reading...';
+
+  const isYouTube = pageContext.url && (pageContext.url.includes('youtube.com/watch') || pageContext.url.includes('youtu.be/'));
+
+  if (isYouTube) {
+    summarizeBtn.querySelector('.action-desc').textContent = 'Fetching transcript…';
+  } else {
+    summarizeBtn.querySelector('.action-desc').textContent = 'AI is reading…';
+  }
 
   try {
     const summary = await callBackend({
       mode: 'summarise',
       pageTitle: pageContext.title,
-      pageText: pageContext.text.slice(0, 6000),
+      // For YouTube: send the URL so backend fetches transcript
+      // For other pages: send the extracted page text
+      pageText: isYouTube ? pageContext.url : pageContext.text.slice(0, 6000),
       userMessage: 'summarise'
     });
     showSummaryOverlay(summary);
@@ -187,7 +290,7 @@ async function runSummarize() {
     console.error('Auto-summarize failed:', err);
   } finally {
     summarizeBtn.classList.remove('loading');
-    summarizeBtn.querySelector('.action-desc').textContent = originalText;
+    summarizeBtn.querySelector('.action-desc').textContent = isYouTube ? 'Summarise this video' : originalText;
   }
 }
 
@@ -341,9 +444,9 @@ chrome.runtime.onMessage.addListener(msg => {
   if (msg.type === 'CLARITY_METRICS') {
     updateGauge(msg.payload.fatigueScore);
     updateMetrics(msg.payload.metrics);
-    chrome.storage.local.set({ 
+    chrome.storage.local.set({
       fatigueScore: msg.payload.fatigueScore,
-      lastMetrics: msg.payload.metrics 
+      lastMetrics: msg.payload.metrics
     });
   }
 
@@ -359,13 +462,19 @@ chrome.runtime.onMessage.addListener(msg => {
 
     console.log('[NeuroAdapt] Received DOM snapshot with', elements.length, 'elements. Classifying...');
 
+    // Add a YouTube context hint for the AI if we're on YouTube
+    const isYouTube = pageContext.url && pageContext.url.includes('youtube.com');
+    const youtubeHint = isYouTube
+      ? '\n\nIMPORTANT CONTEXT: This is a YouTube page. The video player, video title, channel info, and description are ESSENTIAL. Comments, sidebar recommendations, end screens, and ad containers are DISTRACTIONS.'
+      : '';
+
     (async () => {
       try {
         // Send elements to Ollama for classification
         const raw = await callBackend({
           mode: 'classify',
           pageTitle: pageContext.title || '',
-          pageText: (pageContext.text || '').slice(0, 4000),
+          pageText: ((pageContext.text || '').slice(0, 4000)) + youtubeHint,
           userMessage: JSON.stringify(elements, null, 1),
         });
 
@@ -394,28 +503,46 @@ chrome.runtime.onMessage.addListener(msg => {
           reason: item.reason ?? '',
         }));
 
+        // Force-protect YouTube-protected elements
+        classifications = classifications.map(c => {
+          const el = elements[c.index];
+          if (el && el.isYouTubeProtected) {
+            return { ...c, classification: 'essential', reason: 'YouTube video player' };
+          }
+          return c;
+        });
+
         const hidden = classifications.filter(e => e.classification === 'distraction').length;
         const kept = classifications.filter(e => e.classification === 'essential' || e.classification === 'highlight').length;
-        console.log(`[NeuroAdapt] Classification done: ${hidden} distractions hidden, ${kept} essential kept.`);
+        console.log(`[NeuroAdapt] Classification done: ${hidden} distractions dimmed, ${kept} essential kept.`);
 
         // Send classifications back to the content script to apply
         chrome.tabs.sendMessage(sourceTabId, {
           type: 'FOCUS_AGENT_RESULT',
           classifications: classifications,
-        }).catch(() => {});
+        }).catch(() => { });
+
+        // Update sidebar status
+        if (focusStatus) focusStatus.textContent = `On — ${hidden} distractions dimmed`;
 
       } catch (err) {
         console.warn('[NeuroAdapt] AI classification failed, using fallback:', err.message);
         // Fallback: use simple rule-based classification
         const fallback = elements.map((el, i) => ({
           index: i,
-          classification: ['article', 'main', 'h1', 'h2', 'h3', 'p', 'section'].includes(el.tag) ? 'essential' : 'distraction',
+          classification: el.isYouTubeProtected 
+            ? 'essential' 
+            : ['article', 'main', 'h1', 'h2', 'h3', 'p', 'section', 'video'].includes(el.tag)
+              ? 'essential'
+              : 'distraction',
           reason: 'fallback',
         }));
         chrome.tabs.sendMessage(sourceTabId, {
           type: 'FOCUS_AGENT_RESULT',
           classifications: fallback,
-        }).catch(() => {});
+        }).catch(() => { });
+
+        if (focusStatus) focusStatus.textContent = 'On — rule-based (AI unavailable)';
       }
     })();
   }
@@ -459,7 +586,7 @@ chrome.storage.local.get(['backendUrl', 'ollamaModel', 'fatigueScore', 'lastMetr
   }
   updateGauge(data.fatigueScore || 0);
   updateMetrics(data.lastMetrics || {});
-  
+
   if (data.focusModeActive) {
     focusToggle.checked = true;
     focusModeActive = true;
