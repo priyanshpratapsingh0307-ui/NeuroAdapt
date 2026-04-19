@@ -123,17 +123,49 @@ function updateMetrics(m) {
 focusToggle?.addEventListener('change', () => {
   const active = focusToggle.checked;
   focusModeActive = active;
-  if (focusStatus) focusStatus.textContent = active ? 'On — AI cleaning page' : 'Off — distractions allowed';
-
   chrome.storage.local.set({ focusModeActive: active });
+
   if (active) {
+    if (focusStatus) focusStatus.textContent = 'Scanning — AI is analysing page…';
     chrome.runtime.sendMessage({ type: 'COMMAND_FOCUS_MODE' });
-    if (activeTabId) chrome.tabs.sendMessage(activeTabId, { type: 'REQUEST_DOM_SNAPSHOT' }).catch(() => { });
+    if (activeTabId) {
+      chrome.tabs.sendMessage(activeTabId, { type: 'REQUEST_DOM_SNAPSHOT' }).catch(() => {});
+    }
+
+    // If on YouTube, also auto-trigger video summary
+    if (pageContext.url && (pageContext.url.includes('youtube.com/watch') || pageContext.url.includes('youtu.be/'))) {
+      if (focusStatus) focusStatus.textContent = 'On — Summarising video…';
+      runYouTubeSummary();
+    }
   } else {
+    if (focusStatus) focusStatus.textContent = 'Off — distractions allowed';
     chrome.runtime.sendMessage({ type: 'COMMAND_DEACTIVATE_FOCUS' });
-    if (activeTabId) chrome.tabs.sendMessage(activeTabId, { type: 'RESTORE_DISTRACTIONS' }).catch(() => { });
+    if (activeTabId) {
+      chrome.tabs.sendMessage(activeTabId, { type: 'RESTORE_DISTRACTIONS' }).catch(() => {});
+    }
   }
 });
+
+/**
+ * YouTube Transcript Summary
+ * Fetches the video transcript via the backend, sends it to the LLM,
+ * and displays a detailed summary overlay.
+ */
+async function runYouTubeSummary() {
+  try {
+    const summary = await callBackend({
+      mode: 'summarise',
+      pageTitle: pageContext.title || document.title,
+      pageText: pageContext.url,  // Backend detects YouTube URL and fetches transcript
+      userMessage: 'summarise this video in detail'
+    });
+    showSummaryOverlay(summary);
+    if (focusStatus) focusStatus.textContent = 'On — AI cleaning page';
+  } catch (err) {
+    console.error('[NeuroAdapt] YouTube summary failed:', err);
+    if (focusStatus) focusStatus.textContent = 'On — AI cleaning page';
+  }
+}
 
 /**
  * Deep Focus Timer
@@ -235,13 +267,22 @@ async function runSummarize() {
   if (summarizeBtn.classList.contains('loading')) return;
   summarizeBtn.classList.add('loading');
   const originalText = summarizeBtn.querySelector('.action-desc').textContent;
-  summarizeBtn.querySelector('.action-desc').textContent = 'AI is reading...';
+
+  const isYouTube = pageContext.url && (pageContext.url.includes('youtube.com/watch') || pageContext.url.includes('youtu.be/'));
+
+  if (isYouTube) {
+    summarizeBtn.querySelector('.action-desc').textContent = 'Fetching transcript…';
+  } else {
+    summarizeBtn.querySelector('.action-desc').textContent = 'AI is reading…';
+  }
 
   try {
     const summary = await callBackend({
       mode: 'summarise',
       pageTitle: pageContext.title,
-      pageText: pageContext.text.slice(0, 6000),
+      // For YouTube: send the URL so backend fetches transcript
+      // For other pages: send the extracted page text
+      pageText: isYouTube ? pageContext.url : pageContext.text.slice(0, 6000),
       userMessage: 'summarise'
     });
     showSummaryOverlay(summary);
@@ -249,7 +290,7 @@ async function runSummarize() {
     console.error('Auto-summarize failed:', err);
   } finally {
     summarizeBtn.classList.remove('loading');
-    summarizeBtn.querySelector('.action-desc').textContent = originalText;
+    summarizeBtn.querySelector('.action-desc').textContent = isYouTube ? 'Summarise this video' : originalText;
   }
 }
 
@@ -272,13 +313,119 @@ $('close-summary')?.addEventListener('click', () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// ── CHATBOT — Page-context Q&A ────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const chatSection  = $('chat-section');
+const chatHeader   = $('chat-header');
+const chatBody     = $('chat-body');
+const chatMessages = $('chat-messages');
+const chatInput    = $('chat-input');
+const chatSend     = $('chat-send');
+const chatCtxLabel = $('chat-context-label');
+
+// Toggle chat open/close
+chatHeader?.addEventListener('click', () => {
+  chatSection?.classList.toggle('open');
+  // Auto-scroll to bottom when opening
+  if (chatSection?.classList.contains('open') && chatMessages) {
+    setTimeout(() => {
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+      chatInput?.focus();
+    }, 350);
+  }
+});
+
+// Send message on Enter or click
+chatInput?.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendChatMessage();
+  }
+});
+chatSend?.addEventListener('click', sendChatMessage);
+
+async function sendChatMessage() {
+  const text = chatInput?.value.trim();
+  if (!text || !chatMessages) return;
+
+  // Disable input while waiting
+  chatInput.value = '';
+  chatSend.disabled = true;
+
+  // Add user message bubble
+  appendChatBubble(text, 'user');
+
+  // Add loading bubble
+  const loadingBubble = appendChatBubble('Thinking…', 'bot', true);
+
+  try {
+    const reply = await callBackend({
+      mode: 'chat',
+      pageTitle: pageContext.title || '',
+      pageText: (pageContext.text || '').slice(0, 6000),
+      userMessage: text,
+    });
+
+    // Replace loading with actual reply
+    loadingBubble.classList.remove('loading');
+    loadingBubble.innerHTML = formatChatReply(reply);
+  } catch (err) {
+    loadingBubble.classList.remove('loading');
+    loadingBubble.textContent = 'Sorry, I couldn\'t reach the AI. Check that Ollama is running.';
+    loadingBubble.style.color = '#EF4444';
+    console.error('[Chat] Error:', err);
+  } finally {
+    chatSend.disabled = false;
+    chatInput?.focus();
+  }
+}
+
+function appendChatBubble(text, role, isLoading = false) {
+  const msgDiv = document.createElement('div');
+  msgDiv.className = `chat-msg ${role}`;
+
+  const bubble = document.createElement('div');
+  bubble.className = `chat-msg-bubble${isLoading ? ' loading' : ''}`;
+  bubble.textContent = text;
+
+  msgDiv.appendChild(bubble);
+  chatMessages.appendChild(msgDiv);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+
+  return bubble;
+}
+
+function formatChatReply(text) {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n/g, '<br>');
+}
+
+// Update the context label when tab changes
+function updateChatContextLabel() {
+  if (!chatCtxLabel) return;
+  if (pageContext.title) {
+    const short = pageContext.title.length > 35
+      ? pageContext.title.slice(0, 35) + '…'
+      : pageContext.title;
+    chatCtxLabel.textContent = `Context: ${short}`;
+  } else {
+    chatCtxLabel.textContent = 'Context: current tab';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // ── TAB / MESSAGE LISTENERS ───────────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function fetchPageContext(tabId) {
   if (!tabId) return;
   chrome.tabs.sendMessage(tabId, { type: 'GET_PAGE_CONTEXT' }, resp => {
-    if (resp) pageContext = resp;
+    if (resp) {
+      pageContext = resp;
+      updateChatContextLabel();
+    }
   });
 }
 
@@ -315,13 +462,19 @@ chrome.runtime.onMessage.addListener(msg => {
 
     console.log('[NeuroAdapt] Received DOM snapshot with', elements.length, 'elements. Classifying...');
 
+    // Add a YouTube context hint for the AI if we're on YouTube
+    const isYouTube = pageContext.url && pageContext.url.includes('youtube.com');
+    const youtubeHint = isYouTube
+      ? '\n\nIMPORTANT CONTEXT: This is a YouTube page. The video player, video title, channel info, and description are ESSENTIAL. Comments, sidebar recommendations, end screens, and ad containers are DISTRACTIONS.'
+      : '';
+
     (async () => {
       try {
         // Send elements to Ollama for classification
         const raw = await callBackend({
           mode: 'classify',
           pageTitle: pageContext.title || '',
-          pageText: (pageContext.text || '').slice(0, 4000),
+          pageText: ((pageContext.text || '').slice(0, 4000)) + youtubeHint,
           userMessage: JSON.stringify(elements, null, 1),
         });
 
@@ -350,9 +503,18 @@ chrome.runtime.onMessage.addListener(msg => {
           reason: item.reason ?? '',
         }));
 
+        // Force-protect YouTube-protected elements
+        classifications = classifications.map(c => {
+          const el = elements[c.index];
+          if (el && el.isYouTubeProtected) {
+            return { ...c, classification: 'essential', reason: 'YouTube video player' };
+          }
+          return c;
+        });
+
         const hidden = classifications.filter(e => e.classification === 'distraction').length;
         const kept = classifications.filter(e => e.classification === 'essential' || e.classification === 'highlight').length;
-        console.log(`[NeuroAdapt] Classification done: ${hidden} distractions hidden, ${kept} essential kept.`);
+        console.log(`[NeuroAdapt] Classification done: ${hidden} distractions dimmed, ${kept} essential kept.`);
 
         // Send classifications back to the content script to apply
         chrome.tabs.sendMessage(sourceTabId, {
@@ -360,18 +522,27 @@ chrome.runtime.onMessage.addListener(msg => {
           classifications: classifications,
         }).catch(() => { });
 
+        // Update sidebar status
+        if (focusStatus) focusStatus.textContent = `On — ${hidden} distractions dimmed`;
+
       } catch (err) {
         console.warn('[NeuroAdapt] AI classification failed, using fallback:', err.message);
         // Fallback: use simple rule-based classification
         const fallback = elements.map((el, i) => ({
           index: i,
-          classification: ['article', 'main', 'h1', 'h2', 'h3', 'p', 'section'].includes(el.tag) ? 'essential' : 'distraction',
+          classification: el.isYouTubeProtected 
+            ? 'essential' 
+            : ['article', 'main', 'h1', 'h2', 'h3', 'p', 'section', 'video'].includes(el.tag)
+              ? 'essential'
+              : 'distraction',
           reason: 'fallback',
         }));
         chrome.tabs.sendMessage(sourceTabId, {
           type: 'FOCUS_AGENT_RESULT',
           classifications: fallback,
         }).catch(() => { });
+
+        if (focusStatus) focusStatus.textContent = 'On — rule-based (AI unavailable)';
       }
     })();
   }

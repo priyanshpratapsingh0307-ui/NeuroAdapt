@@ -7,6 +7,7 @@ import httpx
 
 from app.core.config import settings
 from app.models.models import OllamaChat
+from app.services.youtube_service import get_youtube_transcript, extract_video_id
 
 router = APIRouter(prefix="/api/ollama", tags=["ollama"])
 
@@ -62,11 +63,28 @@ Elements to classify:
 {req.user_message}"""
 
     if req.mode == "summarise":
+        text = (req.page_text or '').strip()
+        is_transcript = 'TRANSCRIPT:' in text
+
+        if is_transcript:
+            return f"""You are an expert video content analyst. A user is watching a YouTube video and needs a detailed summary.
+
+VIDEO TITLE: {req.page_title or 'Unknown'}
+{text[:15000]}
+
+Provide a DETAILED summary of this video's content:
+1. **Overview** — A 2-3 sentence high-level description of what this video covers.
+2. **Key Topics Covered** — List every major topic or section discussed, with a brief explanation of each.
+3. **Main Arguments / Takeaways** — What are the core points, conclusions, or advice given?
+4. **Notable Details** — Any specific data, examples, tools, or resources mentioned.
+
+Be thorough. The user wants to understand the full content without watching the entire video."""
+
         return f"""You are a helpful reading assistant. Summarise the following page clearly and concisely using bullet points.
 
 PAGE TITLE: {req.page_title or 'Unknown'}
 PAGE CONTENT:
-{(req.page_text or '').strip()[:6000]}
+{text[:12000]}
 
 Give a bullet-point summary. Be concise — 5 bullets maximum."""
 
@@ -151,6 +169,18 @@ async def ollama_chat(
     The response is also stored in MongoDB (OllamaChat collection) so it
     can be surfaced in the dashboard's history panel later.
     """
+    # SPECIAL HANDLING FOR YOUTUBE
+    is_youtube = "youtube.com/watch" in payload.page_text or "youtu.be/" in payload.page_text
+    
+    if payload.mode == "summarise" and is_youtube:
+        print(f"[Ollama] YouTube detected. Attempting to fetch transcript...")
+        transcript = await get_youtube_transcript(payload.page_text)
+        if transcript:
+            payload.page_text = f"TITLE: {payload.page_title}\nURL: {payload.page_text}\nTRANSCRIPT:\n{transcript[:15000]}"
+            print(f"[Ollama] Transcript fetched ({len(transcript)} chars). Summarizing transcript.")
+        else:
+            print(f"[Ollama] No transcript found. Summarizing metadata only.")
+
     prompt = _build_chat_prompt(payload)
     reply  = await _call_mistral(prompt)
 

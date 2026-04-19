@@ -37,8 +37,8 @@ async function getStorageData(keys) {
         chrome.storage.local.get(keys, resolve);
       });
     }
-  } catch (e) {}
-  
+  } catch (e) { }
+
   const fallback = {};
   keys.forEach(k => {
     const val = localStorage.getItem('neuroadapt_' + k);
@@ -81,7 +81,7 @@ async function buildHistoryList() {
     const resp = await fetch(`${BACKEND_URL}/api/sessions?limit=10`, {
       headers: { 'x-user-id': userId }
     });
-    
+
     if (resp.ok) {
       const data = await resp.json();
       sessions = data.map(s => {
@@ -99,7 +99,7 @@ async function buildHistoryList() {
         };
       });
     }
-  } catch(e) {
+  } catch (e) {
     console.error("Failed to fetch session history", e);
   }
 
@@ -110,8 +110,8 @@ async function buildHistoryList() {
   }
 
   sessions.forEach(s => {
-    const col  = s.score >= 70 ? 'var(--danger)' : s.score >= 50 ? 'var(--warn)' : 'var(--ok)';
-    const bcls = s.score >= 70 ? 'badge-danger'  : s.score >= 50 ? 'badge-warn'  : 'badge-ok';
+    const col = s.score >= 70 ? 'var(--danger)' : s.score >= 50 ? 'var(--warn)' : 'var(--ok)';
+    const bcls = s.score >= 70 ? 'badge-danger' : s.score >= 50 ? 'badge-warn' : 'badge-ok';
 
     const div = document.createElement('div');
     div.className = 'hist-row';
@@ -161,7 +161,7 @@ async function fetchDashboardData() {
     const ring = document.getElementById('scoreRing');
     const num = document.getElementById('scoreNum');
     const badge = document.getElementById('scoreBadge');
-    
+
     if (ring) {
       const circ = 389.6;
       const offset = circ - (score / 100) * circ;
@@ -194,7 +194,7 @@ async function fetchDashboardData() {
     if (typeof initTrendChart === 'function') {
       initTrendChart(data.trend);
     }
-    
+
     // Update Score Detail History Chart
     if (typeof initHistDetailChart === 'function') {
       const historyFormatted = sessions.slice(0, 7).reverse().map(s => ({
@@ -209,7 +209,6 @@ async function fetchDashboardData() {
   }
 }
 
-
 /* ─── AI RECOMMENDATIONS (Weekly Plan) ───────────────────── */
 async function generateAIPlan() {
   const container = document.getElementById('ai-recs-container');
@@ -222,13 +221,13 @@ async function generateAIPlan() {
 
   try {
     const userId = await getUserId();
-    
+
     // Fetch last 10 sessions to summarize
     const sessionResp = await fetch(`${BACKEND_URL}/api/sessions?limit=10`, {
       headers: { 'x-user-id': userId }
     });
     const sessionData = await sessionResp.json();
-    const dataStr = sessionData.length > 0 
+    const dataStr = sessionData.length > 0
       ? sessionData.map(s => `Score: ${s.fatigue_score}, Site: ${s.site_url}`).join('\n')
       : "No session data found yet.";
 
@@ -240,7 +239,7 @@ async function generateAIPlan() {
 
     if (!resp.ok) throw new Error(`Backend error: ${resp.status}`);
     const result = await resp.json();
-    
+
     let steps = [];
     try {
       let cleaned = result.reply.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
@@ -260,10 +259,10 @@ async function generateAIPlan() {
     steps.forEach((step, i) => {
       const pColor = step.priority === 'high' ? 'var(--danger)' : step.priority === 'medium' ? 'var(--warn)' : 'var(--teal)';
       const pBg = step.priority === 'high' ? 'var(--danger-dim)' : step.priority === 'medium' ? 'var(--warn-dim)' : 'rgba(58,170,212,0.1)';
-      
+
       container.innerHTML += `
         <div style="background:var(--bg3); border:1px solid var(--border); border-radius:8px; padding:12px 16px; display:flex; gap:14px; align-items:flex-start;">
-          <div style="background:${pBg}; color:${pColor}; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px; flex-shrink:0;">${i+1}</div>
+          <div style="background:${pBg}; color:${pColor}; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px; flex-shrink:0;">${i + 1}</div>
           <div>
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
               <div style="font-weight:600; color:var(--text1);">${step.title}</div>
@@ -288,22 +287,22 @@ async function fetchUserData() {
   try {
     const userId = await getUserId();
     const storageData = await getStorageData(['sessionStartTime']);
-    
+
     const resp = await fetch(`${BACKEND_URL}/api/users/me`, {
       headers: { 'x-user-id': userId }
     });
-    
+
     if (resp.ok) {
       const user = await resp.json();
       const name = user.name || 'User';
       const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-      
+
       if (document.getElementById('sidebar-name')) document.getElementById('sidebar-name').textContent = name;
       if (document.getElementById('sidebar-avatar')) document.getElementById('sidebar-avatar').textContent = initials;
       if (document.getElementById('greeting-title')) document.getElementById('greeting-title').textContent = `Good afternoon, ${name}`;
       if (document.getElementById('report-title')) document.getElementById('report-title').textContent = `Session report · ${name}`;
     }
-    
+
     if (storageData.sessionStartTime) {
       const mins = Math.max(0, Math.floor((Date.now() - storageData.sessionStartTime) / 60000));
       if (document.getElementById('sidebar-meta')) document.getElementById('sidebar-meta').textContent = `Active · ${mins} min session`;
@@ -343,9 +342,9 @@ async function fetchClinicalSummary() {
     const resp = await fetch(`${BACKEND_URL}/api/ollama/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-user-id': userId },
-      body: JSON.stringify({ 
-        mode: 'chat', 
-        user_message: `Based on this session data, write a 2-3 sentence clinical summary of the user's cognitive state: ${context}` 
+      body: JSON.stringify({
+        mode: 'chat',
+        user_message: `Based on this session data, write a 2-3 sentence clinical summary of the user's cognitive state: ${context}`
       }),
     });
 
@@ -370,7 +369,7 @@ async function fetchSettings() {
     if (!resp.ok) return;
 
     const settings = await resp.json();
-    
+
     // Update Toggles
     const toggleMap = {
       'high-contrast-toggle': settings.high_contrast,
@@ -415,13 +414,13 @@ async function saveSetting(key, value) {
 
     const resp = await fetch(`${BACKEND_URL}/api/settings/`, {
       method: 'PUT',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
-        'x-user-id': userId 
+        'x-user-id': userId
       },
       body: JSON.stringify(payload)
     });
-    
+
     if (resp.ok) {
       console.log(`Setting saved: ${key} = ${value}`);
       // Notify extension background script about setting change
@@ -465,8 +464,8 @@ async function deleteAllData() {
 function initSettingsListeners() {
   // Toggles
   const toggles = [
-    { id: 'larger-font-toggle', key: 'larger_targets' }, 
-    { id: 'reduce-motion-toggle', key: 'ui_simplification' }, 
+    { id: 'larger-font-toggle', key: 'larger_targets' },
+    { id: 'reduce-motion-toggle', key: 'ui_simplification' },
     { id: 'high-contrast-toggle', key: 'high_contrast' },
     { id: 'larger-targets-toggle', key: 'larger_targets' },
     { id: 'focus-mode-toggle-settings', key: 'focus_mode_enabled' },
@@ -520,10 +519,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   await fetchSettings();
   initSettingsListeners();
   fetchClinicalSummary();
-  
+
   // Initial charts draw with default sample data for detail pages
   if (typeof initAllCharts === 'function') initAllCharts();
-  
+
   const aiBtn = document.getElementById('btn-refresh-ai');
   if (aiBtn) aiBtn.addEventListener('click', generateAIPlan);
 

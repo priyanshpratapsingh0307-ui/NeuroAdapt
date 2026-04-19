@@ -68,6 +68,11 @@
 
   // ── Page context extraction ──────────────────────────────────────────────────
   function extractPageText() {
+    // Special case for YouTube
+    if (window.location.host.includes('youtube.com') && window.location.pathname.includes('/watch')) {
+      return window.location.href; // Send URL so backend can fetch transcript
+    }
+
     const selectors = ['article', 'main', '[role="main"]', '.content', '.post-content',
                        '.entry-content', '#content', '.article-body', '.story-body'];
     for (const sel of selectors) {
@@ -190,13 +195,18 @@
   function activateFocusMode() {
     if (focusModeActive) return;
     focusModeActive = true;
-    document.documentElement.classList.add('clarity-focus');
+    // NOTE: we do NOT add 'clarity-focus' here anymore.
+    // focus-agent.js adds 'clarity-focus' + 'clarity-focus-scanning' when
+    // the DOM snapshot is requested, and removes 'clarity-focus-scanning'
+    // once the AI classification arrives. This prevents blanket-dimming.
     chrome.storage.local.set({ focusModeActive: true });
   }
 
   function deactivateFocusMode() {
     focusModeActive = false;
-    document.documentElement.classList.remove('clarity-focus');
+    document.documentElement.classList.remove(
+      'clarity-focus', 'clarity-focus-scanning'
+    );
     document.documentElement.style.removeProperty('--clarity-font-scale');
     document.documentElement.style.removeProperty('--clarity-line-scale');
     chrome.storage.local.set({ focusModeActive: false });
