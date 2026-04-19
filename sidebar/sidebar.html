@@ -3,231 +3,210 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Clarity</title>
+  <title>NeuroAdapt</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="sidebar.css"/>
 </head>
 <body>
 <div class="app">
 
-  <!-- thin fatigue indicator bar at very top -->
-  <button class="fatigue-bar" id="fatigue-bar" title="Click to see load details">
-    <span class="fatigue-bar-fill" id="fatigue-bar-fill"></span>
-  </button>
-
-  <!-- collapsible metrics drawer -->
-  <div class="metrics-drawer" id="metrics-drawer">
-    <div class="metrics-row">
-      <div class="met"><span class="met-val" id="gauge-score">0</span><span class="met-key">Score</span></div>
-      <div class="met-div"></div>
-      <div class="met"><span class="met-val" id="gauge-label" style="font-size:11px">Normal</span><span class="met-key">Status</span></div>
-      <div class="met-div"></div>
-      <div class="met"><span class="met-val" id="m-wpm">—</span><span class="met-key">WPM</span></div>
-      <div class="met-div"></div>
-      <div class="met"><span class="met-val" id="m-error">—</span><span class="met-key">Errors</span></div>
-      <div class="met-div"></div>
-      <div class="met"><span class="met-val" id="m-jitter">—</span><span class="met-key">Jitter</span></div>
-    </div>
-    <div class="metrics-footer"><span id="session-time">Session: 0 min</span><span id="adaptation-level"> · Normal</span></div>
-  </div>
-
   <!-- header -->
   <header class="header">
-    <div class="logo"><span class="logo-mark">◎</span><span class="logo-text">Clarity</span></div>
-    <div class="header-actions">
-      <button class="hdr-btn" id="settings-btn" title="Settings">⚙</button>
-      <button class="hdr-btn" id="more-btn" title="More options">···</button>
+    <div class="header-left">
+      <div class="user-avatar-small">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+      </div>
+      <div class="logo-name">NeuroAdapt</div>
+    </div>
+    <div class="header-right">
+      <span class="header-tagline">Focus Assistant</span>
+      <div class="header-status-dot"></div>
     </div>
   </header>
 
-  <!-- ═══ VIEW: HOME ═══ -->
-  <div class="view active" id="view-home">
-    <div class="ring-wrap">
-      <svg class="ring-svg" viewBox="0 0 160 160">
-        <circle class="ring-track" cx="80" cy="80" r="60"/>
-        <circle class="ring-fill" id="ring-fill" cx="80" cy="80" r="60"
-          stroke-dasharray="376.99" stroke-dashoffset="376.99"
-          transform="rotate(-90 80 80)"/>
-      </svg>
-      <div class="ring-center">
-        <span class="ring-score" id="ring-score">0</span>
-        <span class="ring-label" id="ring-label">Normal</span>
-      </div>
-    </div>
-
-    <div class="home-actions">
-      <button class="btn-primary" id="focus-btn">
-        <span>◈</span> Enter Focus Mode
-      </button>
-      <div class="secondary-row">
-        <button class="btn-secondary" id="train-btn">🧠 Train</button>
-        <button class="btn-secondary" id="chat-btn">💬 Chat</button>
-      </div>
-    </div>
-
-    <div class="home-footer">
-      <span id="home-session-time">Session: 0 min</span>
-      <span class="dot">·</span>
-      <span id="home-level">Normal</span>
-    </div>
-  </div>
-
-  <!-- ═══ VIEW: TRAINING MENU ═══ -->
-  <div class="view" id="view-training">
-    <div class="view-hdr">
-      <button class="back-btn" data-target="home">← Back</button>
-      <span class="view-title">Attention Training</span>
-    </div>
-    <div class="training-stats">
-      <div class="tstat"><span class="tstat-val" id="training-streak">0</span><span class="tstat-key">🔥 Streak</span></div>
-      <div class="tstat"><span class="tstat-val" id="training-completed">0</span><span class="tstat-key">Sessions</span></div>
-      <div class="tstat"><span class="tstat-val" id="training-target">10m</span><span class="tstat-key">Next goal</span></div>
-    </div>
-    <div class="training-actions">
-      <p class="train-hint" id="train-hint">Start a timed deep-work session. Each completion unlocks a longer goal.</p>
-      <button class="btn-primary" id="start-session-btn">▶ Start Focus Session</button>
-      <button class="btn-ghost" id="breathing-btn">🫁 Breathing exercise</button>
-    </div>
-  </div>
-
-  <!-- ═══ VIEW: ACTIVE SESSION ═══ -->
-  <div class="view" id="view-session">
-    <div class="view-hdr">
-      <span class="view-title" id="session-type-label">Deep Work</span>
-    </div>
-    <div class="session-body">
-      <div class="timer-wrap">
-        <div class="timer-display" id="timer-display">10:00</div>
-        <div class="timer-label">remaining</div>
-      </div>
-      <div class="session-progress-wrap">
-        <div class="session-progress" id="session-progress"></div>
-      </div>
-      <div class="session-meta" id="session-meta">Target: 10 min</div>
-      <button class="btn-ghost btn-end" id="end-session-btn">End early</button>
-    </div>
-  </div>
-
-  <!-- ═══ VIEW: POST-SESSION ═══ -->
-  <div class="view" id="view-postsession">
-    <div class="ps-body">
-      <div class="ps-emoji" id="ps-emoji">🎉</div>
-      <div class="ps-headline" id="ps-headline">Great work!</div>
-      <div class="ps-time" id="ps-time">10 min 00 sec</div>
-      <div class="ps-progress-wrap"><div class="ps-progress" id="ps-progress"></div></div>
-      <div class="ps-pct" id="ps-pct">100% of goal</div>
-      <div class="ps-streak" id="ps-streak">🔥 1 day streak</div>
-      <div class="ps-next-target" id="ps-next-target">Next session: 11 min</div>
-      <div class="ps-actions">
-        <button class="btn-ghost" id="ps-break-btn">🫁 Take a breath</button>
-        <button class="btn-primary" id="ps-next-btn">Start next</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══ VIEW: BREATHING ═══ -->
-  <div class="view" id="view-breathing">
-    <div class="view-hdr">
-      <button class="back-btn" data-target="training">← Back</button>
-      <span class="view-title">Box Breathing</span>
-    </div>
-    <div class="breath-body">
-      <div class="breath-ring-wrap">
-        <div class="breath-ring" id="breath-ring"></div>
-        <span class="breath-phase" id="breath-phase">Get ready</span>
-      </div>
-      <div class="breath-count" id="breath-count">4 · 4 · 4 · 4</div>
-      <div class="breath-rounds" id="breath-rounds">Round 1 of 3</div>
-      <button class="btn-ghost" id="breathing-skip">Done</button>
-    </div>
-  </div>
-
-  <!-- ═══ VIEW: CHAT ═══ -->
-  <div class="view" id="view-chat">
-    <div class="view-hdr">
-      <button class="back-btn" data-target="home">← Back</button>
-      <span class="view-title" id="chat-view-title">Chat</span>
-    </div>
-    <div class="page-chip"><span class="page-chip-text" id="page-chip-text">Loading page…</span></div>
-    <div class="chat-messages" id="chat-messages">
-      <div class="chat-welcome"><p>Ask me anything about this page.</p></div>
-    </div>
-    <div class="quick-chips" id="quick-chips">
-      <button class="chip" data-prompt="Give me a concise bullet-point summary of this page.">Summarise</button>
-      <button class="chip" data-prompt="What are the 3 most important takeaways?">Key points</button>
-      <button class="chip" data-prompt="Explain the main idea in simple language.">Simplify</button>
-    </div>
-    <div class="chat-input-wrap">
-      <textarea id="chat-input" class="chat-input" rows="1" placeholder="Ask about this page…"></textarea>
-      <button id="chat-send" class="chat-send">
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-          <path d="M2 8L14 2L8 14L7 9L2 8Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+  <!-- Main Scrollable Content -->
+  <div class="main-content">
+    
+    <!-- Fatigue Ring Area -->
+    <div class="fatigue-section" id="ring-trigger">
+      <div class="ring-wrap">
+        <svg class="ring-svg" viewBox="0 0 160 160">
+          <circle class="ring-track" cx="80" cy="80" r="70"/>
+          <circle class="ring-fill" id="ring-fill" cx="80" cy="80" r="70"
+            stroke-dasharray="439.8" stroke-dashoffset="439.8"
+            transform="rotate(-90 80 80)"/>
         </svg>
-      </button>
+        <div class="ring-center">
+          <span class="ring-score" id="ring-score">0</span>
+          <span class="ring-label">FATIGUE SCORE</span>
+        </div>
+      </div>
+      
+      <div class="status-pill-wrap">
+        <button class="status-pill" id="gauge-label">Calm & Focused</button>
+      </div>
+      
+      <div class="interaction-hint" id="interaction-hint">Tap ring to see breakdown</div>
     </div>
+
+    <!-- Breakdown Drawer -->
+    <div class="breakdown-drawer" id="breakdown-drawer">
+      <div class="metrics-list">
+        <!-- Error Rate -->
+        <div class="metric-item">
+          <div class="metric-icon blue">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </div>
+          <div class="metric-info">
+            <div class="metric-header">
+              <span class="metric-label">ERROR RATE</span>
+              <span class="metric-value"><span id="m-error">0</span> <small>per min</small></span>
+            </div>
+            <div class="metric-bar-bg"><div class="metric-bar" id="bar-error" style="width: 0%"></div></div>
+          </div>
+        </div>
+
+        <!-- Typing Speed -->
+        <div class="metric-item">
+          <div class="metric-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"/><path d="M7 8h10M7 12h10M7 16h10"/></svg>
+          </div>
+          <div class="metric-info">
+            <div class="metric-header">
+              <span class="metric-label">TYPING SPEED</span>
+              <span class="metric-value"><span id="m-wpm">0</span> <small>WPM</small></span>
+            </div>
+            <div class="metric-bar-bg"><div class="metric-bar" id="bar-wpm" style="width: 0%"></div></div>
+          </div>
+        </div>
+
+        <!-- Scroll Rate -->
+        <div class="metric-item">
+          <div class="metric-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 13l5-5 5 5M7 17l5-5 5 5"/></svg>
+          </div>
+          <div class="metric-info">
+            <div class="metric-header">
+              <span class="metric-label">SCROLL RATE</span>
+              <span class="metric-value"><span id="m-scroll">0</span> <small>pages/min</small></span>
+            </div>
+            <div class="metric-bar-bg"><div class="metric-bar" id="bar-scroll" style="width: 0%"></div></div>
+          </div>
+          <button class="chip-btn" id="summary-chip">AI Summary</button>
+        </div>
+
+        <!-- Click Delay -->
+        <div class="metric-item">
+          <div class="metric-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          </div>
+          <div class="metric-info">
+            <div class="metric-header">
+              <span class="metric-label">CLICK DELAY</span>
+              <span class="metric-value"><span id="m-jitter">0</span> <small>ms avg</small></span>
+            </div>
+            <div class="metric-bar-bg"><div class="metric-bar" id="bar-jitter" style="width: 0%"></div></div>
+          </div>
+        </div>
+
+        <!-- Rage Clicks -->
+        <div class="metric-item">
+          <div class="metric-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6l3 18h12l3-18H3z"/><path d="M19 6V4a2 2 0 00-2-2H7a2 2 0 00-2 2v2"/></svg>
+          </div>
+          <div class="metric-info">
+            <div class="metric-header">
+              <span class="metric-label">RAGE CLICKS</span>
+              <span class="metric-value"><span id="m-rage">0</span> <small>events</small></span>
+            </div>
+            <div class="metric-bar-bg"><div class="metric-bar" id="bar-rage" style="width: 0%"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Cards -->
+    <div class="actions-section" id="actions-section">
+      <!-- Focus Mode Card -->
+      <div class="action-card">
+        <div class="action-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="action-info">
+          <div class="action-title">Focus Mode</div>
+          <div class="action-desc" id="focus-status">Off — distractions allowed</div>
+        </div>
+        <div class="toggle-wrap">
+          <input type="checkbox" id="focus-toggle" class="ios-toggle">
+          <label for="focus-toggle" class="ios-toggle-label"></label>
+        </div>
+      </div>
+
+      <!-- Summarize Card -->
+      <div class="action-card clickable" id="summarize-btn">
+        <div class="action-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="21" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="3" y2="18"/></svg>
+        </div>
+        <div class="action-info">
+          <div class="action-title">Summarize</div>
+          <div class="action-desc">AI summary of this page</div>
+        </div>
+      </div>
+
+      <!-- Session Reset Card -->
+      <div class="action-card clickable" id="btn-reset">
+        <div class="action-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+        </div>
+        <div class="action-info">
+          <div class="action-title">Session Reset</div>
+          <div class="action-desc">Clear all readings</div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
-  <!-- ═══ OVERLAY: MORE ═══ -->
-  <div class="overlay" id="more-overlay">
-    <div class="overlay-panel">
-      <div class="overlay-hdr"><span>Options</span><button class="overlay-close" id="more-close">✕</button></div>
-      <div class="more-section">
-        <span class="s-label">Focus — AI distraction analysis</span>
-        <div class="agent-row" id="agent-row" style="display:none">
-          <span id="agent-bar-icon">🤖</span>
-          <span id="agent-bar-text">Analysing…</span>
-          <div id="agent-counts" style="display:none;gap:4px;align-items:center;">
-            <span class="agent-pill red" id="agent-hidden-count">0</span> hidden ·
-            <span class="agent-pill muted" id="agent-dimmed-count">0</span> dimmed
-          </div>
-          <button class="agent-show-btn" id="agent-show-all" style="display:none">Show all</button>
-        </div>
-        <div id="agent-off-note" class="s-hint">Enable Focus Mode to activate AI distraction analysis.</div>
-      </div>
-      <div class="more-section">
-        <span class="s-label">Reading</span>
-        <div class="more-controls">
-          <span class="fc-lbl">Text</span>
-          <button class="fc-btn" id="font-dec">A−</button>
-          <button class="fc-btn" id="font-inc">A+</button>
-          <span class="fc-lbl" style="margin-left:8px">Spacing</span>
-          <button class="fc-btn" id="line-dec">↕−</button>
-          <button class="fc-btn" id="line-inc">↕+</button>
-        </div>
-      </div>
-      <button class="s-danger" id="btn-reset">↺ Reset session</button>
-    </div>
-  </div>
+  <!-- Settings Trigger -->
+  <button class="settings-trigger" id="settings-btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+  </button>
 
   <!-- ═══ OVERLAY: SETTINGS ═══ -->
   <div class="overlay" id="settings-overlay">
     <div class="overlay-panel">
       <div class="overlay-hdr"><span>Settings</span><button class="overlay-close" id="settings-close">✕</button></div>
-      <label class="s-label">Gemini API Key</label>
-      <p class="s-hint">Free from <a href="https://aistudio.google.com" target="_blank">aistudio.google.com</a></p>
-      <div class="s-row">
-        <input type="password" id="api-key-input" class="s-input" placeholder="AIza…" autocomplete="off"/>
-        <button class="s-save" id="api-key-save">Save</button>
+      <div class="settings-content">
+        <label class="s-label">AI Backend</label>
+        <div class="s-row">
+          <input type="text" id="backend-url-input" class="s-input" placeholder="http://127.0.0.1:8000"/>
+          <button class="s-save" id="backend-url-save">Save</button>
+        </div>
+        <label class="s-label">Ollama Model</label>
+        <div class="s-row">
+          <input type="text" id="ollama-model-input" class="s-input" placeholder="mistral"/>
+          <button class="s-save" id="ollama-model-save">Save</button>
+        </div>
       </div>
-      <div class="api-key-status" id="api-key-status"></div>
-      <div class="s-about">◎ Clarity v2.0 · Gemini 2.0 Flash</div>
     </div>
   </div>
 
-  <!-- hidden compat refs -->
-  <div id="m-scroll" style="display:none"></div>
-  <div id="focus-toggle" style="display:none"></div>
-  <div id="focus-toggle-card" style="display:none"></div>
-  <div id="focus-controls" style="display:none"></div>
-  <div id="agent-status-card" style="display:none"></div>
-  <div id="agent-status-icon" style="display:none"></div>
-  <div id="agent-status-title" style="display:none"></div>
-  <div id="agent-results" style="display:none"></div>
-  <div id="agent-kept-count" style="display:none"></div>
-  <div id="status-pill" style="display:none"></div>
-  <div id="focus-controls-bar" style="display:none"></div>
-  <div id="agent-bar" style="display:none"></div>
+  <!-- Summary Overlay -->
+  <div id="clarity-summary-overlay" style="display:none">
+    <div id="clarity-summary-panel">
+      <div class="clarity-summary-header">
+        <div class="clarity-summary-title">AI Page Summary</div>
+        <button class="clarity-summary-close" id="close-summary">✕</button>
+      </div>
+      <div class="clarity-summary-content" id="summary-content">
+        <!-- Summary populated by JS -->
+      </div>
+    </div>
+  </div>
 
 </div>
 <script src="sidebar.js"></script>

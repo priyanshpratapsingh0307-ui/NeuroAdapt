@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.db.database import init_db
-from app.routers import users, sessions, dashboard, settings as settings_router, suggestions
+from app.routers import users, sessions, dashboard, settings as settings_router, suggestions, ollama as ollama_router
 
 
 # ─── LIFESPAN ─────────────────────────────────────────────
@@ -12,9 +12,12 @@ from app.routers import users, sessions, dashboard, settings as settings_router,
 # and initialises Beanie with all document models.
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await init_db()
+    try:
+        await init_db()
+    except Exception as e:
+        print(f"[DB] WARNING: MongoDB connection failed — {e}")
+        print("[DB] Server will start without database. Chat will work; persistence will not.")
     yield
-    # (add cleanup here if needed later)
 
 
 # ─── APP ──────────────────────────────────────────────────
@@ -34,8 +37,8 @@ app = FastAPI(
 # Chrome extension origin format: chrome-extension://<extension-id>
 app.add_middleware(
     CORSMiddleware,
-    allow_origins    = settings.get_cors_origins(),
-    allow_credentials= True,
+    allow_origins    = ["*"],   # Extension requests use chrome-extension:// origin
+    allow_credentials= False,   # Must be False when allow_origins=["*"]
     allow_methods    = ["*"],
     allow_headers    = ["*"],
 )
@@ -47,6 +50,7 @@ app.include_router(sessions.router)
 app.include_router(dashboard.router)
 app.include_router(settings_router.router)
 app.include_router(suggestions.router)
+app.include_router(ollama_router.router)   # ← Ollama / Mistral AI
 
 
 # ─── HEALTH CHECK ─────────────────────────────────────────

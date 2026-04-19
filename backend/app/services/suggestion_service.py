@@ -1,4 +1,4 @@
-import anthropic
+import httpx
 from datetime import datetime, timezone, timedelta
 from typing import Optional
 
@@ -6,9 +6,7 @@ from app.core.config import settings
 from app.models.models import Session, Suggestion
 
 
-# Anthropic client — initialised once, reused for all calls
-_client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
-
+# ─── Helpers ──────────────────────────────────────────────────────────────────
 
 def _get_status(score: float) -> str:
     if score >= 70:
@@ -24,7 +22,7 @@ def _get_threshold(score: float) -> int:
 
 async def _get_session_history(user_id: str) -> list[dict]:
     """
-    Fetches the last 10 sessions for this user to give Claude context
+    Fetches the last 10 sessions for this user to give Mistral context
     about the user's recent fatigue patterns.
     """
     recent = (
@@ -51,7 +49,7 @@ def _build_prompt(
     threshold: int,
 ) -> str:
     """
-    Builds the Claude prompt with full session context.
+    Builds the Mistral prompt with full session context.
     The richer the context, the more personalised the suggestion.
     """
     time_of_day = datetime.now(timezone.utc).strftime("%I:%M %p")
@@ -104,6 +102,27 @@ Do not include any preamble. Start directly with the suggestion.
 """
 
 
+async def _call_ollama(prompt: str) -> str:
+    """
+    Calls Ollama's OpenAI-compatible endpoint with the configured model (mistral).
+    Raises on any HTTP or connection error.
+    """
+    url = f"{settings.OLLAMA_BASE_URL}/v1/chat/completions"
+    async with httpx.AsyncClient(timeout=120.0) as client:
+        resp = await client.post(
+            url,
+            json={
+                "model": settings.OLLAMA_MODEL,
+                "stream": False,
+                "messages": [{"role": "user", "content": prompt}],
+            },
+        )
+        resp.raise_for_status()
+        return resp.json()["choices"][0]["message"]["content"].strip()
+
+
+# ─── Main entry point ─────────────────────────────────────────────────────────
+
 async def check_and_generate_suggestion(
     session: Session,
 ) -> Optional[Suggestion]:
@@ -115,7 +134,7 @@ async def check_and_generate_suggestion(
     2. Check if a suggestion was already generated recently for this user
        (avoid spamming suggestions every 30 seconds)
     3. Build prompt with session context + history
-    4. Call Claude API
+    4. Call Ollama (Mistral) API — local, no API key needed
     5. Save suggestion to MongoDB
     6. Return suggestion (or None if threshold not crossed)
     """
@@ -142,16 +161,14 @@ async def check_and_generate_suggestion(
     # Step 3 — Get session history for context
     history = await _get_session_history(session.user_id)
 
-    # Step 4 — Build prompt and call Claude
+    # Step 4 — Build prompt and call Ollama (Mistral)
     prompt = _build_prompt(session, history, status, threshold)
-
-    message = _client.messages.create(
-        model="claude-sonnet-4-20250514",
-        max_tokens=300,
-        messages=[{"role": "user", "content": prompt}],
-    )
-
-    suggestion_text = message.content[0].text.strip()
+    try:
+        suggestion_text = await _call_ollama(prompt)
+    except Exception as e:
+        # Don't crash the session save — just skip the suggestion
+        print(f"[Suggestion] Ollama call failed: {e}")
+        return None
 
     # Step 5 — Save to MongoDB
     suggestion = Suggestion(

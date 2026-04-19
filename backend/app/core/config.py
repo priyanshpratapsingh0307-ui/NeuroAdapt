@@ -7,8 +7,9 @@ class Settings(BaseSettings):
     MONGO_URL: str = "mongodb://localhost:27017"
     MONGO_DB_NAME: str = "neuroadapt"
 
-    # Anthropic
-    ANTHROPIC_API_KEY: str = ""
+    # Ollama (local LLM)
+    OLLAMA_MODEL: str = "mistral"         # model pulled via `ollama pull mistral`
+    OLLAMA_BASE_URL: str = "http://localhost:11434"
 
     # CORS — comma-separated list of allowed origins
     CORS_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:5500"

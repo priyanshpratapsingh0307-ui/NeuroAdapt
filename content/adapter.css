@@ -99,19 +99,52 @@ html.clarity-level-3::before {
 
 /* ── Focus Mode ─────────────────────────────────────────────────────────────── */
 html.clarity-focus body {
-  max-width: 760px !important;
   margin: 0 auto !important;
   font-size: calc(1.1em * var(--clarity-font-scale)) !important;
   line-height: 1.85 !important;
   letter-spacing: 0.025em !important;
   word-spacing: 0.05em !important;
   color: #1a1a1a !important;
-  background: #faf9f6 !important;
+  background: #111111 !important; /* Dark theater background */
+  position: relative;
+}
+
+/* The Theatre Effect: Dim everything that isn't essential */
+html.clarity-focus body > * {
+  opacity: 0.15 !important;
+  filter: blur(2px) grayscale(0.8) !important;
+  transition: all 0.5s ease !important;
+  pointer-events: none !important;
+}
+
+/* Keep essential content, highlights, and sidebar/popups bright and clear */
+html.clarity-focus body > article,
+html.clarity-focus body > main,
+html.clarity-focus body > [role="main"],
+html.clarity-focus body > .article,
+html.clarity-focus body > .post-content,
+html.clarity-focus body > .clarity-highlight,
+html.clarity-focus #clarity-focus-toolbar,
+html.clarity-focus .clarity-toast,
+html.clarity-focus #clarity-summary-overlay {
+  opacity: 1 !important;
+  filter: none !important;
+  background: #faf9f6 !important; /* Bright paper for main content */
+  padding: 40px !important;
+  border-radius: 12px !important;
+  box-shadow: 0 0 100px rgba(0,0,0,0.5) !important;
+  margin-top: 20px !important;
+  margin-bottom: 20px !important;
+  pointer-events: auto !important;
+  position: relative;
+  z-index: 10;
+  max-width: 800px !important; /* Centered readable width */
+  margin-left: auto !important;
+  margin-right: auto !important;
 }
 
 html.clarity-focus * {
-  font-family: 'Georgia', 'Times New Roman', serif !important;
-  max-width: 100% !important;
+  font-family: 'SF Pro Text', 'Georgia', serif !important;
 }
 
 html.clarity-focus h1, html.clarity-focus h2, html.clarity-focus h3 {
@@ -439,10 +472,34 @@ html.clarity-focus body {
 }
 
 .clarity-distraction-dimmed {
-  opacity: 0.2 !important;
+  opacity: 0.1 !important;
   pointer-events: none !important;
-  filter: grayscale(0.4) !important;
-  transition: opacity 0.4s ease !important;
+  filter: grayscale(0.8) blur(1px) !important;
+  transition: all 0.5s ease !important;
+}
+
+/* ── AI Highlight Style ─────────────────────────────────────────────────── */
+.clarity-highlight {
+  border: 2px solid rgba(125, 211, 252, 0.4) !important;
+  background: rgba(125, 211, 252, 0.03) !important;
+  box-shadow: 0 0 25px rgba(125, 211, 252, 0.15) !important;
+  transform: scale(1.01);
+  transition: all 0.4s ease !important;
+}
+
+.clarity-highlight::before {
+  content: '★ IMPORTANT';
+  position: absolute;
+  top: -12px;
+  right: 20px;
+  background: #7dd3fc;
+  color: #0f172a;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.1em;
+  z-index: 11;
 }
 
 /* Focus mode line scale support ─────────────────────────────────────────────── */
