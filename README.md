@@ -1,4 +1,4 @@
-# ◎ Clarity — Cognitive Fatigue Adapter
+# ◎ NeuroAdapt — Cognitive Fatigue Adapter
 
 A browser extension that passively monitors cognitive load signals and progressively simplifies your browsing experience — no configuration needed.
 
@@ -6,12 +6,12 @@ A browser extension that passively monitors cognitive load signals and progressi
 
 ## How to Install in Chrome (Developer Mode)
 
-1. **Download & unzip** the `clarity-extension` folder somewhere on your computer.
+1. **Download & unzip** the `NeuroAdapt-extension` folder somewhere on your computer.
 2. Open Chrome and navigate to `chrome://extensions`
 3. Toggle **"Developer mode"** ON (top-right corner)
 4. Click **"Load unpacked"**
-5. Select the `clarity-extension` folder
-6. The ◎ Clarity icon will appear in your toolbar
+5. Select the `NeuroAdapt-extension` folder
+6. The ◎ NeuroAdapt icon will appear in your toolbar
 
 **To pin the icon:** Click the puzzle piece (extensions) icon → click the pin next to Clarity.
 
@@ -20,12 +20,13 @@ A browser extension that passively monitors cognitive load signals and progressi
 ## Features
 
 ### 🧠 Passive Fatigue Detection
-Every 3 seconds, Clarity silently measures:
+Every 3 seconds, NeuroAdapt silently measures:
 - **Typing speed & error rate** — more backspaces = higher cognitive load
 - **Cursor jitter** — erratic mouse movement signals difficulty
 - **Scroll irregularity** — back-and-forth scrolling indicates re-reading
 - **Repeated clicks** — clicking the same area multiple times
 - **Session duration** — long sessions increase baseline fatigue
+- **Tab switching frequency** — frequent tab changes indicate distraction and reduced focus
 
 ### 📊 Fatigue Score (0–100)
 | Score | Level    | Adaptations Applied |
@@ -43,20 +44,26 @@ Click the extension → toggle Focus Mode to:
 - Enable font size controls (A− / A+)
 
 ### ◉ Summarise Page
-Get AI-generated bullet-point summaries of any page. Designed for low-fatigue consumption — plain language, no jargon.
+Get AI-generated bullet-point summaries of any page, designed for low-fatigue consumption using clear, plain language and no jargon. Summarization is automatically triggered during rapid scrolling to provide key insights without interrupting the user’s flow. Users can also ask follow-up questions at the end, which are restricted strictly to the content of the page to ensure relevance and focus.
 
 ### ↺ Break Nudges
-After 2 hours of continuous browsing, a gentle toast appears suggesting a break.
+After 2 hours of continuous browsing, a gentle toast appears suggesting a break. It also provides options for a brief breathing exercise, listening to brown noise, or switching to Focus Mode to help restore attention and reduce fatigue.
 
 ### Auto-suggestions
-When fatigue reaches Moderate level, Clarity asks if you'd like to enable Focus Mode automatically.
+When fatigue reaches Moderate level, NeuroAdapt asks if you'd like to enable Focus Mode automatically.
+
+### Therapist
+A list of nearby therapists is provided as an optional resource for additional support.
+
+### Dashboard
+A dashboard is also available, providing a comprehensive history of user sessions along with deeper insights into overall activity and cognitive patterns.
 
 ---
 
 ## File Structure
 
 ```
-clarity-extension/
+NeuroAdapt-extension/
 ├── manifest.json              # Extension config
 ├── icons/
 │   ├── icon16.png
