@@ -4,6 +4,7 @@
 /* ── CSS Variables ─────────────────────────────────────────────────────────── */
 :root {
   --clarity-font-scale: 1;
+  --clarity-line-scale: 1;
   --clarity-line-height: 1;
   --clarity-letter-spacing: 0em;
   --clarity-bg-overlay: transparent;
@@ -21,55 +22,80 @@ html.clarity-level-1 * {
   transition-duration: calc(var(--clarity-anim-scale) * 0.7) !important;
 }
 
-/* ── Level 2: Moderate — clear simplification ──────────────────────────────── */
+/* ── Level 2: Moderate — perceptual dimming of distractions ─────────────────── */
 html.clarity-level-2 body {
-  font-size: calc(1em * var(--clarity-font-scale) * 1.08) !important;
-  line-height: calc(1.7 * var(--clarity-line-height)) !important;
-  letter-spacing: 0.02em !important;
+  font-size: calc(1em * var(--clarity-font-scale) * 1.05) !important;
+  line-height: calc(1.65 * var(--clarity-line-height)) !important;
 }
 html.clarity-level-2 * {
   animation-duration: 0.1ms !important;
-  animation-delay: 0.1ms !important;
   transition-duration: 0.1ms !important;
 }
-/* Reduce visual noise: hide non-essential decorative elements */
+/* Desaturate the whole page subtly… */
+html.clarity-level-2 body {
+  filter: saturate(0.75) brightness(0.97) !important;
+}
+/* …but keep main content sharp */
+html.clarity-level-2 article,
+html.clarity-level-2 main,
+html.clarity-level-2 [role="main"],
+html.clarity-level-2 .article,
+html.clarity-level-2 .post-content {
+  filter: saturate(1) brightness(1.02) !important;
+}
+/* Fade out clear distractions */
 html.clarity-level-2 [class*="ad-"],
 html.clarity-level-2 [id*="ad-"],
 html.clarity-level-2 [class*="banner"],
 html.clarity-level-2 [class*="promo"],
+html.clarity-level-2 [class*="social"],
 html.clarity-level-2 iframe:not([src*="youtube"]):not([src*="vimeo"]) {
-  opacity: 0.15 !important;
+  opacity: 0.12 !important;
   pointer-events: none !important;
 }
 
-/* ── Level 3: High fatigue — maximum simplification ────────────────────────── */
+/* ── Level 3: High — hard lock on peripherals ────────────────────────────────── */
 html.clarity-level-3 body {
-  font-size: calc(1em * var(--clarity-font-scale) * 1.16) !important;
-  line-height: calc(1.9 * var(--clarity-line-height)) !important;
-  letter-spacing: 0.03em !important;
+  font-size: calc(1em * var(--clarity-font-scale) * 1.12) !important;
+  line-height: calc(1.85 * var(--clarity-line-height)) !important;
 }
 html.clarity-level-3 * {
   animation: none !important;
   transition: none !important;
 }
+/* Strong desaturation everywhere… */
+html.clarity-level-3 body {
+  filter: saturate(0.45) brightness(0.92) !important;
+}
+/* …main content stays clear */
+html.clarity-level-3 article,
+html.clarity-level-3 main,
+html.clarity-level-3 [role="main"] {
+  filter: saturate(1) brightness(1.06) !important;
+}
+/* Hard-hide distractions */
 html.clarity-level-3 [class*="ad-"],
 html.clarity-level-3 [id*="ad-"],
 html.clarity-level-3 [class*="banner"],
 html.clarity-level-3 [class*="promo"],
 html.clarity-level-3 [class*="sidebar"],
 html.clarity-level-3 [class*="widget"],
+html.clarity-level-3 [class*="social"],
+html.clarity-level-3 [class*="comment"],
+html.clarity-level-3 [class*="recommend"],
 html.clarity-level-3 iframe:not([src*="youtube"]):not([src*="vimeo"]) {
   display: none !important;
 }
-/* Add a subtle warm overlay to reduce eye strain */
+/* Warm tint to ease eye strain */
 html.clarity-level-3::before {
   content: '';
   position: fixed;
   inset: 0;
-  background: rgba(255, 240, 210, 0.06);
+  background: rgba(255, 235, 200, 0.05);
   pointer-events: none;
   z-index: 9998;
 }
+
 
 /* ── Focus Mode ─────────────────────────────────────────────────────────────── */
 html.clarity-focus body {
@@ -405,4 +431,21 @@ html.clarity-focus body {
 @keyframes clarityPulse {
   0%, 100% { opacity: 0.3; transform: scale(0.8); }
   50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* ── AI Distraction Agent classes ───────────────────────────────────────────── */
+.clarity-distraction-hidden {
+  display: none !important;
+}
+
+.clarity-distraction-dimmed {
+  opacity: 0.2 !important;
+  pointer-events: none !important;
+  filter: grayscale(0.4) !important;
+  transition: opacity 0.4s ease !important;
+}
+
+/* Focus mode line scale support ─────────────────────────────────────────────── */
+html.clarity-focus body {
+  line-height: calc(1.85 * var(--clarity-line-scale)) !important;
 }
