@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeuroAdapt — Cognitive Health Monitor</title>
+
+  <!-- Google Fonts: DM Sans (UI text) + DM Mono (numbers/code) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Our custom styles -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ═══════════════════════════════════════════════════════
+       SIDEBAR — fixed left panel with logo, nav, user card
+       ═══════════════════════════════════════════════════════ -->
+  <aside class="sidebar">
+
+    <!-- Logo -->
+    <div class="logo-block">
+      <div class="logo-row">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#3AAAD4" stroke-width="2" stroke-linecap="round">
+            <path d="M12 2a7 7 0 017 7c0 4-3 6-4 9H9c-1-3-4-5-4-9a7 7 0 017-7z"/>
+            <path d="M9 17h6M10 20h4"/>
+          </svg>
+        </div>
+        <div>
+          <div class="logo-name">NeuroAdapt</div>
+          <div class="logo-tagline">Cognitive health monitor</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation buttons -->
+    <nav class="nav">
+      <div class="nav-section-label">Monitor</div>
+
+      <button class="nav-btn active" onclick="nav('dashboard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+          <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+          <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+          <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+        </svg>
+        Dashboard
+      </button>
+
+      <button class="nav-btn" onclick="nav('history')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M12 7v5l3 3"/>
+        </svg>
+        Session History
+      </button>
+
+      <div class="nav-section-label" style="margin-top:6px">Support</div>
+
+      <button class="nav-btn" onclick="nav('help')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+        </svg>
+        Help &amp; Therapist
+      </button>
+
+      <button class="nav-btn" onclick="nav('settings')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+        </svg>
+        Settings
+      </button>
+    </nav>
+
+    <!-- User card at bottom -->
+    <div class="sidebar-bottom">
+      <div class="user-card">
+        <div class="avatar">AR</div>
+        <div class="user-info">
+          <div class="user-name">Arjun R.</div>
+          <div class="user-meta">Active · 42 min session</div>
+        </div>
+        <div class="session-dot"></div>
+      </div>
+    </div>
+
+  </aside><!-- end sidebar -->
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       MAIN CONTENT — right side, holds all pages
+       Only one page is visible at a time (.page.active)
+       ═══════════════════════════════════════════════════════ -->
+  <main class="main">
+
+
+    <!-- ───────────────────────────────────────────────────
+         PAGE 1: DASHBOARD
+         The live monitoring view shown on first load.
+         ─────────────────────────────────────────────────── -->
+    <div class="page active" id="page-dashboard">
+
+      <!-- Page header -->
+      <div class="phead">
+        <div class="phead-left">
+          <div class="ptitle">Good afternoon, Arjun</div>
+          <div class="psub">
+            <span class="live-dot"></span>
+            &nbsp;Live monitoring · Session started 42 min ago · Sunday, 19 Apr 2026
+          </div>
+        </div>
+        <button class="btn btn-sm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Export session
+        </button>
+      </div>
+
+      <!-- Score ring + Alert suggestions -->
+      <div style="display:grid;grid-template-columns:240px 1fr;gap:18px;margin-bottom:20px">
+
+        <!-- Score ring card -->
+        <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:28px 20px">
+          <div class="section-label" style="margin-bottom:0;text-align:center">FragileScore</div>
+          <div class="ring-container">
+            <svg width="150" height="150" viewBox="0 0 150 150">
+              <!-- Background track circle -->
+              <circle cx="75" cy="75" r="62" fill="none" stroke="var(--bg4)" stroke-width="10"/>
+              <!-- Filled score arc — stroke-dashoffset controls fill amount -->
+              <circle id="scoreRing" cx="75" cy="75" r="62" fill="none" stroke="var(--warn)" stroke-width="10"
+                stroke-dasharray="389.6" stroke-dashoffset="148"
+                stroke-linecap="round" transform="rotate(-90 75 75)"
+                style="transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1)"/>
+            </svg>
+            <div class="ring-num">
+              <div class="ring-score" id="scoreNum" style="color:var(--warn)">62</div>
+              <div class="ring-max">/ 100</div>
+            </div>
+          </div>
+          <span class="badge badge-warn" id="scoreBadge">Fragile</span>
+          <button class="btn btn-teal btn-sm" style="width:100%;justify-content:center" onclick="nav('scoredetail')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+            View full breakdown
+          </button>
+        </div>
+
+        <!-- Alert + action suggestions -->
+        <div class="card" style="padding:20px">
+          <div class="alert alert-warn">
+            <div class="alert-title" style="color:var(--warn)">Your focus is showing signs of strain</div>
+            <div class="alert-body" style="color:rgba(252,211,77,.75)">Typing gaps have increased 38% above your personal baseline. Cognitive load has been rising for the past 20 minutes — a short break now will help significantly.</div>
+          </div>
+          <div class="section-label" style="margin-top:4px">Recommended actions</div>
+          <div class="sug-grid">
+            <div class="sug">
+              <div class="sug-ico">🧘</div>
+              <div class="sug-name">Breathing exercise</div>
+              <div class="sug-desc">2-min box breathing</div>
+            </div>
+            <div class="sug">
+              <div class="sug-ico">☕</div>
+              <div class="sug-name">Take a break</div>
+              <div class="sug-desc">5 min away from screen</div>
+            </div>
+            <div class="sug">
+              <div class="sug-ico">🎯</div>
+              <div class="sug-name">Focus mode</div>
+              <div class="sug-desc">Simplify your screen</div>
+            </div>
+            <div class="sug">
+              <div class="sug-ico">🎵</div>
+              <div class="sug-name">Focus sounds</div>
+              <div class="sug-desc">Brown noise playlist</div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- end score+alert row -->
+
+      <!-- 4 metric cards -->
+      <div class="g4" style="margin-bottom:20px">
+        <div class="metric-card">
+          <div class="metric-label">Typing speed</div>
+          <div class="metric-val" style="color:var(--warn)">34<span class="metric-unit">wpm</span></div>
+          <div class="metric-delta" style="color:var(--danger)">−41% vs your baseline</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Error rate</div>
+          <div class="metric-val" style="color:var(--danger)">18<span class="metric-unit">%</span></div>
+          <div class="metric-delta" style="color:var(--danger)">+260% vs baseline (5%)</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Scroll reversals</div>
+          <div class="metric-val" style="color:var(--warn)">14<span class="metric-unit">/min</span></div>
+          <div class="metric-delta">Baseline: 3/min — elevated</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Cursor jitter</div>
+          <div class="metric-val" style="color:var(--ok)">Low</div>
+          <div class="metric-delta" style="color:var(--ok)">Within normal range</div>
+        </div>
+      </div>
+
+      <!-- Score trend chart + Session timeline -->
+      <div class="g2">
+        <div class="card">
+          <div class="section-label">Score trend · today</div>
+          <div class="chart-box chart-box--md"><canvas id="trendChart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="section-label">Session timeline</div>
+          <div class="tl-item">
+            <div class="tl-dot" style="background:var(--danger)"></div>
+            <div class="tl-time">42 min ago</div>
+            <div>
+              <div class="tl-text">Entered Fragile zone</div>
+              <div class="tl-sub">Typing gap exceeded threshold</div>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot" style="background:var(--warn)"></div>
+            <div class="tl-time">28 min ago</div>
+            <div>
+              <div class="tl-text">Error rate spike</div>
+              <div class="tl-sub">18 corrections in 2 minutes</div>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot" style="background:var(--ok)"></div>
+            <div class="tl-time">12 min ago</div>
+            <div>
+              <div class="tl-text">Brief recovery period</div>
+              <div class="tl-sub">Score dipped to 51 momentarily</div>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot" style="background:var(--teal)"></div>
+            <div class="tl-time">Now</div>
+            <div>
+              <div class="tl-text">Monitoring active</div>
+              <div class="tl-sub">All signals within capture range</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end page-dashboard -->
+
+
+    <!-- ───────────────────────────────────────────────────
+         PAGE 2: FRAGILSCORE DETAIL
+         Deep breakdown of all cognitive signals.
+         Reached via "View full breakdown" button.
+         ─────────────────────────────────────────────────── -->
+    <div class="page" id="page-scoredetail">
+
+      <div class="phead">
+        <div>
+          <div class="ptitle">FragileScore · Full Breakdown</div>
+          <div class="psub">Deep analysis of all cognitive signals · current session</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="badge badge-warn" style="font-size:14px;padding:6px 14px">62 · Fragile</span>
+          <button class="btn btn-sm" onclick="nav('dashboard')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+            Back
+          </button>
+        </div>
+      </div>
+
+      <!-- Score ring + signal contribution bars -->
+      <div class="score-detail-hero">
+        <div class="score-ring-wrap">
+          <div class="ring-container">
+            <svg width="150" height="150" viewBox="0 0 150 150">
+              <circle cx="75" cy="75" r="62" fill="none" stroke="var(--bg4)" stroke-width="10"/>
+              <circle cx="75" cy="75" r="62" fill="none" stroke="var(--warn)" stroke-width="10"
+                stroke-dasharray="389.6" stroke-dashoffset="148"
+                stroke-linecap="round" transform="rotate(-90 75 75)"/>
+            </svg>
+            <div class="ring-num">
+              <div class="ring-score" style="color:var(--warn)">62</div>
+              <div class="ring-max">/ 100</div>
+            </div>
+          </div>
+          <span class="badge badge-warn">Fragile</span>
+        </div>
+
+        <div>
+          <div class="section-label">Signal contribution breakdown</div>
+          <div class="mini-bar-row">
+            <span class="mbl">Typing rhythm</span>
+            <div class="mbt"><div class="mbf" style="width:72%;background:var(--danger)"></div></div>
+            <span class="mbv" style="color:var(--danger)">72</span>
+          </div>
+          <div class="mini-bar-row">
+            <span class="mbl">Error rate</span>
+            <div class="mbt"><div class="mbf" style="width:68%;background:var(--warn)"></div></div>
+            <span class="mbv" style="color:var(--warn)">68</span>
+          </div>
+          <div class="mini-bar-row">
+            <span class="mbl">Scroll behavior</span>
+            <div class="mbt"><div class="mbf" style="width:55%;background:var(--warn)"></div></div>
+            <span class="mbv" style="color:var(--warn)">55</span>
+          </div>
+          <div class="mini-bar-row">
+            <span class="mbl">Click delay</span>
+            <div class="mbt"><div class="mbf" style="width:44%;background:var(--lav)"></div></div>
+            <span class="mbv" style="color:var(--lav)">44</span>
+          </div>
+          <div class="mini-bar-row">
+            <span class="mbl">Cursor jitter</span>
+            <div class="mbt"><div class="mbf" style="width:28%;background:var(--ok)"></div></div>
+            <span class="mbv" style="color:var(--ok)">28</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Why/driver explanation cards -->
+      <div class="g2" style="margin-bottom:20px">
+        <div class="why-block" style="background:var(--danger-dim);border-color:rgba(248,113,113,.2)">
+          <div class="why-title" style="color:var(--danger)">Primary driver — Typing rhythm</div>
+          <div class="why-body">Keystroke gaps are 38% longer than your personal baseline. Widening gaps between keystrokes is a reliable early indicator of cognitive fatigue onset.</div>
+        </div>
+        <div class="why-block" style="background:var(--warn-dim);border-color:rgba(252,211,77,.2)">
+          <div class="why-title" style="color:var(--warn)">Secondary — Error rate spike</div>
+          <div class="why-body">3.6× more corrections than baseline. Elevated corrections indicate reduced working memory capacity and increased re-reading cycles.</div>
+        </div>
+      </div>
+
+      <!-- Signal charts -->
+      <div class="card" style="margin-bottom:18px">
+        <div class="section-label">Typing rhythm · keystroke gap (ms) over session</div>
+        <div class="chart-box chart-box--sm"><canvas id="typingChart"></canvas></div>
+      </div>
+
+      <div class="g2" style="margin-bottom:18px">
+        <div class="card">
+          <div class="section-label">Error rate over time (%)</div>
+          <div class="chart-box chart-box--sm"><canvas id="errorChart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="section-label">Scroll reversal frequency (/min)</div>
+          <div class="chart-box chart-box--sm"><canvas id="scrollChart"></canvas></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-label">FragileScore · last 7 sessions</div>
+        <div class="chart-box chart-box--sm"><canvas id="histDetailChart"></canvas></div>
+      </div>
+
+    </div><!-- end page-scoredetail -->
+
+
+    <!-- ───────────────────────────────────────────────────
+         PAGE 3: SESSION HISTORY
+         List of all past sessions with stats and charts.
+         ─────────────────────────────────────────────────── -->
+    <div class="page" id="page-history">
+
+      <div class="phead">
+        <div>
+          <div class="ptitle">Session History</div>
+          <div class="psub">All recorded monitoring sessions</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-sm">Export CSV</button>
+          <button class="btn btn-teal btn-sm">Generate report</button>
+        </div>
+      </div>
+
+      <!-- Summary stat cards -->
+      <div class="g3" style="margin-bottom:22px">
+        <div class="metric-card" style="text-align:center">
+          <div class="metric-label">Avg score · 7 days</div>
+          <div class="metric-val" style="color:var(--warn)">58</div>
+        </div>
+        <div class="metric-card" style="text-align:center">
+          <div class="metric-label">Total sessions</div>
+          <div class="metric-val">24</div>
+        </div>
+        <div class="metric-card" style="text-align:center">
+          <div class="metric-label">Trend vs last week</div>
+          <div class="metric-val" style="color:var(--ok)">−8 pts</div>
+        </div>
+      </div>
+
+      <!-- Weekly pattern chart -->
+      <div class="card" style="margin-bottom:20px">
+        <div class="section-label">Weekly pattern</div>
+        <div class="chart-box chart-box--md"><canvas id="patternChart"></canvas></div>
+      </div>
+
+      <!-- Session list — populated by buildHistoryList() in app.js -->
+      <div class="section-label">Past sessions</div>
+      <div id="histList"></div>
+
+    </div><!-- end page-history -->
+
+
+    <!-- ───────────────────────────────────────────────────
+         PAGE 4: HELP & THERAPIST
+         Professional support links + session report.
+         ─────────────────────────────────────────────────── -->
+    <div class="page" id="page-help">
+
+      <div class="phead">
+        <div>
+          <div class="ptitle">Help &amp; Support</div>
+          <div class="psub">Professional support and shareable session reports</div>
+        </div>
+      </div>
+
+      <div class="g2" style="margin-bottom:20px">
+
+        <!-- Find a therapist card -->
+        <div class="card">
+          <div class="section-label">Find a therapist nearby</div>
+          <div style="background:var(--bg3);border-radius:var(--r12);height:130px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);margin-bottom:14px">
+            <div style="text-align:center">
+              <div style="font-size:26px;margin-bottom:6px">🗺</div>
+              <div style="font-size:12px;color:var(--text3)">Opens Google Maps on click</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <button class="btn btn-teal" style="width:100%;justify-content:center"
+              onclick="window.open('https://www.google.com/maps/search/therapist+near+me','_blank')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+              Therapist near me
+            </button>
+            <button class="btn" style="width:100%;justify-content:center"
+              onclick="window.open('https://www.google.com/maps/search/ADHD+specialist+near+me','_blank')">
+              ADHD specialist near me
+            </button>
+          </div>
+        </div>
+
+        <!-- When to seek help card -->
+        <div class="card">
+          <div class="section-label">When to seek professional help</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div class="why-block" style="background:var(--danger-dim);border-color:rgba(248,113,113,.2)">
+              <div class="why-title" style="color:var(--danger)">Score 70–100 · Strained</div>
+              <div class="why-body">Persistent high scores may indicate a need for professional support. Consider speaking with a therapist or ADHD specialist soon.</div>
+            </div>
+            <div class="why-block" style="background:var(--warn-dim);border-color:rgba(252,211,77,.2)">
+              <div class="why-title" style="color:var(--warn)">Score 40–70 · Fragile</div>
+              <div class="why-body">Self-care strategies and structured breaks help. ADHD coaching may be beneficial. Continued monitoring is valuable.</div>
+            </div>
+            <div class="why-block" style="background:var(--ok-dim);border-color:rgba(110,231,183,.2)">
+              <div class="why-title" style="color:var(--ok)">Score 0–40 · Healthy</div>
+              <div class="why-body">Cognitive load is well-managed. Maintain current habits and keep monitoring over time.</div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- end g2 -->
+
+      <!-- Session report card -->
+      <div class="report-block">
+        <div class="report-head">
+          <div>
+            <div class="rhead-title">Session report · Arjun R.</div>
+            <div class="rhead-meta">19 Apr 2026 · Duration 42 min · FragileScore 62</div>
+          </div>
+          <span class="badge badge-warn">Fragile</span>
+        </div>
+
+        <div class="g4" style="margin-bottom:18px">
+          <div style="text-align:center;padding:14px 12px;background:var(--bg3);border-radius:var(--r12);border:1px solid var(--border)">
+            <div style="font-size:26px;font-weight:700;color:var(--warn);font-family:var(--mono)">62</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:3px">FragileScore</div>
+          </div>
+          <div style="text-align:center;padding:14px 12px;background:var(--bg3);border-radius:var(--r12);border:1px solid var(--border)">
+            <div style="font-size:26px;font-weight:700;font-family:var(--mono)">34</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:3px">Avg WPM</div>
+          </div>
+          <div style="text-align:center;padding:14px 12px;background:var(--bg3);border-radius:var(--r12);border:1px solid var(--border)">
+            <div style="font-size:26px;font-weight:700;color:var(--danger);font-family:var(--mono)">18%</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:3px">Error rate</div>
+          </div>
+          <div style="text-align:center;padding:14px 12px;background:var(--bg3);border-radius:var(--r12);border:1px solid var(--border)">
+            <div style="font-size:26px;font-weight:700;font-family:var(--mono)">42m</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:3px">Duration</div>
+          </div>
+        </div>
+
+        <div style="font-size:12.5px;color:var(--text3);line-height:1.75;margin-bottom:18px;padding:14px 16px;background:var(--bg3);border-radius:var(--r12);border:1px solid var(--border)">
+          <strong style="color:var(--text2)">Clinical summary:</strong> Session exhibited elevated typing latency (38% above personal baseline), significantly increased correction rate (260% above baseline), and elevated scroll reversal frequency (14/min vs. 3/min baseline). Cursor jitter and click delay remained within normal parameters. The pattern is consistent with cognitive fatigue onset, likely exacerbated by sustained attention demands over 42 minutes. Recommended interventions include structured break cycles, task complexity reduction, and monitoring for score persistence across subsequent sessions.
+        </div>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-teal btn-sm">Download PDF</button>
+          <button class="btn btn-sm">Send to therapist</button>
+          <button class="btn btn-sm">Copy link</button>
+        </div>
+      </div>
+
+    </div><!-- end page-help -->
+
+
+    <!-- ───────────────────────────────────────────────────
+         PAGE 5: SETTINGS
+         Toggles, sliders, and user preferences.
+         ─────────────────────────────────────────────────── -->
+    <div class="page" id="page-settings">
+
+      <div class="phead">
+        <div>
+          <div class="ptitle">Adaptive Controls</div>
+          <div class="psub">Personalise the interface for your comfort and focus needs</div>
+        </div>
+      </div>
+
+      <div class="g2">
+
+        <!-- Display & Accessibility toggles -->
+        <div class="card">
+          <div class="section-label">Display &amp; accessibility</div>
+          <div class="set-row">
+            <div>
+              <div class="set-title">Larger font size</div>
+              <div class="set-desc">Scales all text up 20% for easier reading</div>
+            </div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="set-row">
+            <div>
+              <div class="set-title">Reduce motion</div>
+              <div class="set-desc">Disables all animations and transitions</div>
+            </div>
+            <div class="toggle" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="set-row">
+            <div>
+              <div class="set-title">High contrast text</div>
+              <div class="set-desc">Increases text/background contrast ratio</div>
+            </div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="set-row">
+            <div>
+              <div class="set-title">Larger click targets</div>
+              <div class="set-desc">Increases button and link hit areas by 40%</div>
+            </div>
+            <div class="toggle" onclick="this.classList.toggle('on')"></div>
+          </div>
+        </div>
+
+        <!-- Focus & Monitoring toggles -->
+        <div class="card">
+          <div class="section-label">Focus &amp; monitoring</div>
+          <div class="set-row">
+            <div>
+              <div class="set-title">Focus mode</div>
+              <div class="set-desc">Hides navigation, shows only active content</div>
+            </div>
+            <div class="toggle" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="set-row">
+            <div>
+              <div class="set-title">UI simplification</div>
+              <div class="set-desc">Reduces visual elements at Fragile state</div>
+            </div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="set-row">
+            <div>
+              <div class="set-title">Break reminders</div>
+              <div class="set-desc">Gentle nudge every 25 minutes</div>
+            </div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="set-row">
+            <div>
+              <div class="set-title">Strained-state alerts</div>
+              <div class="set-desc">Show therapist prompt when score ≥ 70</div>
+            </div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+        </div>
+
+        <!-- Signal sensitivity sliders -->
+        <div class="card">
+          <div class="section-label">Signal sensitivity</div>
+
+          <div style="margin-bottom:18px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+              <span style="font-size:13px">Typing signal weight</span>
+              <span style="font-size:13px;font-weight:500;color:var(--teal);font-family:var(--mono)" id="tw-v">40%</span>
+            </div>
+            <input type="range" min="10" max="70" step="5" value="40"
+              oninput="document.getElementById('tw-v').textContent = this.value + '%'">
+          </div>
+
+          <div style="margin-bottom:18px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+              <span style="font-size:13px">Scroll signal weight</span>
+              <span style="font-size:13px;font-weight:500;color:var(--teal);font-family:var(--mono)" id="sw-v">30%</span>
+            </div>
+            <input type="range" min="10" max="60" step="5" value="30"
+              oninput="document.getElementById('sw-v').textContent = this.value + '%'">
+          </div>
+
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+              <span style="font-size:13px">Alert threshold (score)</span>
+              <span style="font-size:13px;font-weight:500;color:var(--teal);font-family:var(--mono)" id="at-v">70</span>
+            </div>
+            <input type="range" min="50" max="90" step="5" value="70"
+              oninput="document.getElementById('at-v').textContent = this.value">
+          </div>
+        </div>
+
+        <!-- Data & Privacy toggles -->
+        <div class="card">
+          <div class="section-label">Data &amp; privacy</div>
+          <div class="set-row">
+            <div>
+              <div class="set-title">Store session history</div>
+              <div class="set-desc">Save sessions locally for trend analysis</div>
+            </div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="set-row">
+            <div>
+              <div class="set-title">Anonymous analytics</div>
+              <div class="set-desc">Help improve detection accuracy</div>
+            </div>
+            <div class="toggle" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div style="margin-top:18px;display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-sm">Reset baseline</button>
+            <button class="btn btn-sm">Clear history</button>
+            <button class="btn btn-danger btn-sm">Delete all data</button>
+          </div>
+        </div>
+
+      </div><!-- end g2 -->
+
+    </div><!-- end page-settings -->
+
+
+  </main><!-- end .main -->
+</div><!-- end .app -->
+
+<!-- Chart.js (CDN — load before our chart code) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- a_charts.js must come BEFORE app.js because app.js calls initAllCharts() -->
+<script src="a_charts.js"></script>
+<script src="app.js"></script>
+
+</body>
+</html>
