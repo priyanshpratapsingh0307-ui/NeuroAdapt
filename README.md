@@ -1,4 +1,4 @@
-# ◎ Clarity — Cognitive Fatigue Adapter
+# ◎ NeuroAdapt — Cognitive Fatigue Adapter
 
 A browser extension that passively monitors cognitive load signals and progressively simplifies your browsing experience — no configuration needed.
 
