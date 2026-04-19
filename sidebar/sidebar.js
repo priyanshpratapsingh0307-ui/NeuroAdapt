@@ -210,13 +210,119 @@ $('close-summary')?.addEventListener('click', () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// ── CHATBOT — Page-context Q&A ────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const chatSection  = $('chat-section');
+const chatHeader   = $('chat-header');
+const chatBody     = $('chat-body');
+const chatMessages = $('chat-messages');
+const chatInput    = $('chat-input');
+const chatSend     = $('chat-send');
+const chatCtxLabel = $('chat-context-label');
+
+// Toggle chat open/close
+chatHeader?.addEventListener('click', () => {
+  chatSection?.classList.toggle('open');
+  // Auto-scroll to bottom when opening
+  if (chatSection?.classList.contains('open') && chatMessages) {
+    setTimeout(() => {
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+      chatInput?.focus();
+    }, 350);
+  }
+});
+
+// Send message on Enter or click
+chatInput?.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendChatMessage();
+  }
+});
+chatSend?.addEventListener('click', sendChatMessage);
+
+async function sendChatMessage() {
+  const text = chatInput?.value.trim();
+  if (!text || !chatMessages) return;
+
+  // Disable input while waiting
+  chatInput.value = '';
+  chatSend.disabled = true;
+
+  // Add user message bubble
+  appendChatBubble(text, 'user');
+
+  // Add loading bubble
+  const loadingBubble = appendChatBubble('Thinking…', 'bot', true);
+
+  try {
+    const reply = await callBackend({
+      mode: 'chat',
+      pageTitle: pageContext.title || '',
+      pageText: (pageContext.text || '').slice(0, 6000),
+      userMessage: text,
+    });
+
+    // Replace loading with actual reply
+    loadingBubble.classList.remove('loading');
+    loadingBubble.innerHTML = formatChatReply(reply);
+  } catch (err) {
+    loadingBubble.classList.remove('loading');
+    loadingBubble.textContent = 'Sorry, I couldn\'t reach the AI. Check that Ollama is running.';
+    loadingBubble.style.color = '#EF4444';
+    console.error('[Chat] Error:', err);
+  } finally {
+    chatSend.disabled = false;
+    chatInput?.focus();
+  }
+}
+
+function appendChatBubble(text, role, isLoading = false) {
+  const msgDiv = document.createElement('div');
+  msgDiv.className = `chat-msg ${role}`;
+
+  const bubble = document.createElement('div');
+  bubble.className = `chat-msg-bubble${isLoading ? ' loading' : ''}`;
+  bubble.textContent = text;
+
+  msgDiv.appendChild(bubble);
+  chatMessages.appendChild(msgDiv);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+
+  return bubble;
+}
+
+function formatChatReply(text) {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n/g, '<br>');
+}
+
+// Update the context label when tab changes
+function updateChatContextLabel() {
+  if (!chatCtxLabel) return;
+  if (pageContext.title) {
+    const short = pageContext.title.length > 35
+      ? pageContext.title.slice(0, 35) + '…'
+      : pageContext.title;
+    chatCtxLabel.textContent = `Context: ${short}`;
+  } else {
+    chatCtxLabel.textContent = 'Context: current tab';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // ── TAB / MESSAGE LISTENERS ───────────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function fetchPageContext(tabId) {
   if (!tabId) return;
   chrome.tabs.sendMessage(tabId, { type: 'GET_PAGE_CONTEXT' }, resp => {
-    if (resp) pageContext = resp;
+    if (resp) {
+      pageContext = resp;
+      updateChatContextLabel();
+    }
   });
 }
 
