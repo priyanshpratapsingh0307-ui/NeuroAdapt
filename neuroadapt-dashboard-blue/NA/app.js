@@ -95,6 +95,100 @@ function buildHistoryList() {
 }
 
 
+/* ─── AI RECOMMENDATIONS ───────────────────────────────────
+   Fetches weekly fatigue data from storage, sends it to the Ollama
+   backend, and renders the personalized improvement steps.   */
+async function generateAIPlan() {
+  const container = document.getElementById('ai-recs-container');
+  const btn = document.getElementById('btn-refresh-ai');
+  if (!container || !btn) return;
+
+  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg> Loading...`;
+  btn.style.opacity = '0.7';
+  btn.disabled = true;
+
+  try {
+    // 1. Get weekly data from extension storage
+    const storageData = await new Promise(resolve => {
+      chrome.storage.local.get(['weeklyFatigue', 'userId'], resolve);
+    });
+    
+    const weekly = storageData.weeklyFatigue || {};
+    let dataStr = "No data recorded yet.";
+    
+    if (Object.keys(weekly).length > 0) {
+      const summary = [];
+      for (const date in weekly) {
+        const d = weekly[date];
+        const avg = Math.round(d.scores.reduce((a, b) => a + b, 0) / d.count);
+        summary.push(`${date}: Average fatigue score = ${avg}/100`);
+      }
+      dataStr = summary.join('\n');
+    }
+
+    // 2. Call backend
+    const resp = await fetch('http://127.0.0.1:8000/api/ollama/chat', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'x-user-id': storageData.userId || 'dashboard-user'
+      },
+      body: JSON.stringify({ 
+        mode: 'recommend',
+        user_message: dataStr
+      }),
+    });
+
+    if (!resp.ok) throw new Error(`Backend error: ${resp.status}`);
+    const result = await resp.json();
+    
+    // 3. Parse JSON response
+    let steps = [];
+    try {
+      let cleaned = result.reply.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+      steps = JSON.parse(cleaned);
+      if (!Array.isArray(steps)) {
+        const arrMatch = cleaned.match(/\[[\s\S]*\]/);
+        if (arrMatch) steps = JSON.parse(arrMatch[0]);
+      }
+    } catch {
+      const arrMatch = result.reply.match(/\[[\s\S]*\]/);
+      if (arrMatch) steps = JSON.parse(arrMatch[0]);
+      else throw new Error('AI did not return valid JSON');
+    }
+
+    if (!Array.isArray(steps)) throw new Error('Expected array from AI.');
+
+    // 4. Render
+    container.innerHTML = '';
+    steps.forEach((step, i) => {
+      const pColor = step.priority === 'high' ? 'var(--danger)' : step.priority === 'medium' ? 'var(--warn)' : 'var(--teal)';
+      const pBg = step.priority === 'high' ? 'var(--danger-dim)' : step.priority === 'medium' ? 'var(--warn-dim)' : 'rgba(58,170,212,0.1)';
+      
+      container.innerHTML += `
+        <div style="background:var(--bg3); border:1px solid var(--border); border-radius:8px; padding:12px 16px; display:flex; gap:14px; align-items:flex-start;">
+          <div style="background:${pBg}; color:${pColor}; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px; flex-shrink:0;">${i+1}</div>
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <div style="font-weight:600; color:var(--text1);">${step.title}</div>
+              <span class="badge" style="font-size:10px; padding:2px 6px; background:${pBg}; color:${pColor}; border:1px solid ${pColor}30;">${step.priority}</span>
+            </div>
+            <div style="font-size:13px; color:var(--text2); line-height:1.5;">${step.description}</div>
+          </div>
+        </div>
+      `;
+    });
+
+  } catch (err) {
+    console.error("AI Recommendation failed:", err);
+    container.innerHTML = `<div style="color:var(--danger); padding:10px; background:var(--danger-dim); border-radius:6px; font-size:13px;">Failed to generate plan. Ensure your backend is running. (${err.message})</div>`;
+  } finally {
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 102.6-6.4L2 8"/></svg> Refresh Plan`;
+    btn.style.opacity = '1';
+    btn.disabled = false;
+  }
+}
+
 /* ─── ENTRY POINT ────────────────────────────────────────
    DOMContentLoaded fires when all HTML elements are ready.
    We wait for this before touching the DOM or drawing charts,
@@ -102,6 +196,10 @@ function buildHistoryList() {
 document.addEventListener('DOMContentLoaded', () => {
   buildHistoryList(); /* Build the session list on the History page */
   initAllCharts();    /* Draw all charts (a_charts.js) */
+  
+  const aiBtn = document.getElementById('btn-refresh-ai');
+  if (aiBtn) aiBtn.addEventListener('click', generateAIPlan);
+
   requestAnimationFrame(() => {
     if (typeof resizeAllCharts === 'function') resizeAllCharts();
   });

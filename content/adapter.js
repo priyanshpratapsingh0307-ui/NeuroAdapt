@@ -13,6 +13,37 @@
   let lastLevelThreeStart   = null;
   let lastFatigueScore      = 0;
 
+  // ── Adaptive UI: step-based scaling state ─────────────────────────────────
+  let sustainedSpikeCount = 0;
+  let currentFontScale = 1.0;
+  let currentLineScale = 1.0;
+  let currentLetterSpacing = 0.0;
+  
+  // A 0.40 multiplier bump represents a much more significant jump (roughly +6.5px on 16px font)
+  const SCALE_BUMP = 0.40;
+
+  /**
+   * Compute step-based UI adaptation.
+   * As long as fatigue is spiked (>= 50), it bumps font size up significantly (0.40 scale)
+   * every 3 seconds until it hits the maximum cap. Does not shrink back.
+   */
+  function applyAdaptiveUI(score) {
+    // Detect a spike (Fragile or worse)
+    if (score >= 50) {
+      // Keep bumping up every 3 seconds as long as fatigue stays high, until cap
+      if (currentFontScale < 3.2) { // Raised cap to allow more bumps
+        currentFontScale += SCALE_BUMP;
+        currentLineScale += SCALE_BUMP * 1.5; // Scale line-height slightly more for readability
+        currentLetterSpacing += 0.03;         // Add subtle letter spacing
+        
+        // Apply immediately
+        document.documentElement.style.setProperty('--clarity-font-scale', currentFontScale.toFixed(3));
+        document.documentElement.style.setProperty('--clarity-line-scale', currentLineScale.toFixed(3));
+        document.documentElement.style.setProperty('--clarity-letter-spacing', currentLetterSpacing.toFixed(4) + 'em');
+      }
+    }
+  }
+
   // ── Fatigue level thresholds ─────────────────────────────────────────────────
   function getLevel(score) {
     if (score < 25) return 0;
@@ -77,6 +108,8 @@
         const action = btn.dataset.action;
         if (action === 'focus_mode') activateFocusMode();
         if (action === 'dismiss_break') breakNudgeShown = true;
+        if (action === 'start_breathing') startBreathingExercise();
+        
         toast.classList.remove('clarity-toast--visible');
         setTimeout(() => toast.remove(), 300);
       });
@@ -88,6 +121,42 @@
         setTimeout(() => toast.remove(), 300);
       }, duration);
     }
+  }
+
+  // ── Breathing Exercise Overlay ──────────────────────────────────────────────
+  function startBreathingExercise() {
+    const overlay = document.createElement('div');
+    overlay.className = 'clarity-breathing-overlay';
+    overlay.innerHTML = `
+      <div class="clarity-breathing-circle">
+        <div class="clarity-breathing-text">Inhale...</div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const circle = overlay.querySelector('.clarity-breathing-circle');
+    const text = overlay.querySelector('.clarity-breathing-text');
+    
+    // 4-7-8 breathing sequence
+    requestAnimationFrame(() => {
+      text.textContent = 'Breathe in...';
+      circle.style.transform = 'scale(1.8)';
+      
+      setTimeout(() => {
+        text.textContent = 'Hold...';
+        
+        setTimeout(() => {
+          text.textContent = 'Exhale slowly...';
+          circle.style.transform = 'scale(1)';
+          circle.style.transition = 'transform 8s ease-in-out';
+          
+          setTimeout(() => {
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.remove(), 1000);
+          }, 8000); // 8s exhale
+        }, 7000); // 7s hold
+      }, 4000); // 4s inhale
+    });
   }
 
   // ── Passive adaptations by level ─────────────────────────────────────────────
@@ -175,6 +244,7 @@
         lastFatigueScore = msg.fatigueScore;
         const level = getLevel(msg.fatigueScore);
         applyAdaptation(level);
+        applyAdaptiveUI(msg.fatigueScore); // Progressive font/spacing scaling
 
         // ── Hard intervention at level 3 ──────────────────────────────────────
         if (level === 3 && !focusModeActive) {
@@ -196,15 +266,19 @@
           if (hardInterventionTimer) { clearTimeout(hardInterventionTimer); hardInterventionTimer = null; }
         }
 
-        // ── Auto-suggest focus mode at level 2+ ───────────────────────────────
+        // ── Auto-suggest focus mode & breathing at level 2+ ───────────────────
         if (level >= 2 && !focusModeActive) {
           const key = `clarity_focus_suggested_${Math.floor(Date.now() / 300000)}`;
           chrome.storage.local.get(key, (data) => {
             if (!data[key]) {
               chrome.storage.local.set({ [key]: true });
               showToast(
-                'High cognitive load detected. Open the Clarity sidebar and enable Focus Mode.',
-                8000
+                'High cognitive load detected. Time for a quick 4-7-8 breathing exercise to regain focus.',
+                12000,
+                [
+                  { label: 'Start Breathing', action: 'start_breathing' },
+                  { label: 'Focus Mode', action: 'focus_mode' }
+                ]
               );
             }
           });

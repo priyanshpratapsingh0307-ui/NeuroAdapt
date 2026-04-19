@@ -27,7 +27,7 @@ class OllamaChatRequest(BaseModel):
     page_text    : extracted page body text (truncated by extension to ~6 000 chars)
     user_message : the user's question, or a JSON-encoded elements list for "classify"
     """
-    mode: Literal["chat", "classify", "summarise"]
+    mode: Literal["chat", "classify", "summarise", "recommend"]
     page_title: Optional[str] = ""
     page_text: Optional[str] = ""
     user_message: str
@@ -69,6 +69,23 @@ PAGE CONTENT:
 {(req.page_text or '').strip()[:6000]}
 
 Give a bullet-point summary. Be concise — 5 bullets maximum."""
+
+    if req.mode == "recommend":
+        return f"""You are a cognitive health advisor for a person who may have ADHD or a short attention span.
+
+Based on the following weekly fatigue data (daily average scores from 0-100, where higher = more fatigued/distracted), generate exactly 5 personalized, actionable improvement steps.
+
+WEEKLY FATIGUE DATA:
+{req.user_message}
+
+RULES:
+- Each step must be specific, practical, and immediately actionable (not generic advice).
+- Tailor advice to the severity: low scores (0-30) = maintenance tips, medium (30-60) = active improvement, high (60-100) = urgent intervention.
+- Include a mix of: behavioral changes, environmental adjustments, and cognitive exercises.
+- Format each step as a JSON object with "title" (short, 3-5 words), "description" (1-2 sentences), and "priority" ("low", "medium", "high").
+
+Return ONLY a JSON array of 5 objects. No prose, no markdown fences.
+[{{"title":"...", "description":"...", "priority":"low|medium|high"}}]"""
 
     # chat
     if req.page_text:

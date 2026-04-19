@@ -169,10 +169,7 @@ async function getOrCreateUserId() {
   });
 }
 
-/**
- * Summarize Button
- */
-summarizeBtn?.addEventListener('click', async () => {
+async function runSummarize() {
   if (summarizeBtn.classList.contains('loading')) return;
   summarizeBtn.classList.add('loading');
   const originalText = summarizeBtn.querySelector('.action-desc').textContent;
@@ -187,12 +184,17 @@ summarizeBtn?.addEventListener('click', async () => {
     });
     showSummaryOverlay(summary);
   } catch (err) {
-    alert('Failed to get summary. Make sure backend is running.');
+    console.error('Auto-summarize failed:', err);
   } finally {
     summarizeBtn.classList.remove('loading');
     summarizeBtn.querySelector('.action-desc').textContent = originalText;
   }
-});
+}
+
+/**
+ * Summarize Button
+ */
+summarizeBtn?.addEventListener('click', runSummarize);
 
 function showSummaryOverlay(text) {
   const overlay = $('clarity-summary-overlay');
@@ -237,6 +239,79 @@ chrome.runtime.onMessage.addListener(msg => {
       fatigueScore: msg.payload.fatigueScore,
       lastMetrics: msg.payload.metrics 
     });
+  }
+
+  if (msg.type === 'AUTO_SUMMARIZE_TRIGGER') {
+    runSummarize();
+  }
+
+  // ── AI DISTRACTION CLASSIFICATION PIPELINE ──────────────────────────────────
+  if (msg.type === 'DOM_SNAPSHOT' && focusModeActive) {
+    const elements = msg.elements;
+    const sourceTabId = msg.tabId || activeTabId;
+    if (!elements || !sourceTabId) return;
+
+    console.log('[NeuroAdapt] Received DOM snapshot with', elements.length, 'elements. Classifying...');
+
+    (async () => {
+      try {
+        // Send elements to Ollama for classification
+        const raw = await callBackend({
+          mode: 'classify',
+          pageTitle: pageContext.title || '',
+          pageText: (pageContext.text || '').slice(0, 4000),
+          userMessage: JSON.stringify(elements, null, 1),
+        });
+
+        // Parse the AI response
+        let classifications;
+        try {
+          let cleaned = raw.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+          classifications = JSON.parse(cleaned);
+          if (!Array.isArray(classifications)) {
+            const arrMatch = cleaned.match(/\[[\s\S]*\]/);
+            if (arrMatch) classifications = JSON.parse(arrMatch[0]);
+          }
+        } catch {
+          const arrMatch = raw.match(/\[[\s\S]*\]/);
+          if (arrMatch) classifications = JSON.parse(arrMatch[0]);
+          else throw new Error('AI did not return valid JSON');
+        }
+
+        if (!Array.isArray(classifications)) throw new Error('Expected array from AI.');
+
+        // Normalize classifications
+        const validTypes = ['essential', 'supplementary', 'distraction', 'highlight'];
+        classifications = classifications.map((item, i) => ({
+          index: item.index ?? i,
+          classification: validTypes.includes(item.classification) ? item.classification : 'distraction',
+          reason: item.reason ?? '',
+        }));
+
+        const hidden = classifications.filter(e => e.classification === 'distraction').length;
+        const kept = classifications.filter(e => e.classification === 'essential' || e.classification === 'highlight').length;
+        console.log(`[NeuroAdapt] Classification done: ${hidden} distractions hidden, ${kept} essential kept.`);
+
+        // Send classifications back to the content script to apply
+        chrome.tabs.sendMessage(sourceTabId, {
+          type: 'FOCUS_AGENT_RESULT',
+          classifications: classifications,
+        }).catch(() => {});
+
+      } catch (err) {
+        console.warn('[NeuroAdapt] AI classification failed, using fallback:', err.message);
+        // Fallback: use simple rule-based classification
+        const fallback = elements.map((el, i) => ({
+          index: i,
+          classification: ['article', 'main', 'h1', 'h2', 'h3', 'p', 'section'].includes(el.tag) ? 'essential' : 'distraction',
+          reason: 'fallback',
+        }));
+        chrome.tabs.sendMessage(sourceTabId, {
+          type: 'FOCUS_AGENT_RESULT',
+          classifications: fallback,
+        }).catch(() => {});
+      }
+    })();
   }
 });
 

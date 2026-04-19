@@ -12,6 +12,15 @@
   --clarity-anim-scale: 1;
 }
 
+/* ── Adaptive UI: Progressive scaling applied to body content ────────── */
+/* Target only block-level root text containers to prevent nested compounding */
+body p, body li, body h1, body h2, body h3, body h4, body h5, body h6 {
+  font-size: calc(1em * var(--clarity-font-scale)) !important;
+  line-height: calc(1.6 * var(--clarity-line-scale)) !important;
+  letter-spacing: var(--clarity-letter-spacing) !important;
+  transition: font-size 0.8s ease, line-height 0.8s ease, letter-spacing 0.8s ease !important;
+}
+
 /* ── Level 1: Mild — subtle adjustments ────────────────────────────────────── */
 html.clarity-level-1 body {
   font-size: calc(1em * var(--clarity-font-scale) * 1.02) !important;
@@ -124,6 +133,9 @@ html.clarity-focus body > [role="main"],
 html.clarity-focus body > .article,
 html.clarity-focus body > .post-content,
 html.clarity-focus body > .clarity-highlight,
+html.clarity-focus body > .clarity-essential,
+html.clarity-focus .clarity-highlight,
+html.clarity-focus .clarity-essential,
 html.clarity-focus #clarity-focus-toolbar,
 html.clarity-focus .clarity-toast,
 html.clarity-focus #clarity-summary-overlay {
@@ -138,7 +150,7 @@ html.clarity-focus #clarity-summary-overlay {
   pointer-events: auto !important;
   position: relative;
   z-index: 10;
-  max-width: 800px !important; /* Centered readable width */
+  max-width: 850px !important; /* Slightly wider readable width */
   margin-left: auto !important;
   margin-right: auto !important;
 }
@@ -472,10 +484,19 @@ html.clarity-focus body {
 }
 
 .clarity-distraction-dimmed {
-  opacity: 0.1 !important;
+  opacity: 0.08 !important;
   pointer-events: none !important;
-  filter: grayscale(0.8) blur(1px) !important;
+  filter: grayscale(0.9) blur(2px) !important;
   transition: all 0.5s ease !important;
+}
+
+/* Essential content stays fully visible and clear */
+.clarity-essential {
+  opacity: 1 !important;
+  filter: none !important;
+  pointer-events: auto !important;
+  position: relative !important;
+  z-index: 10 !important;
 }
 
 /* ── AI Highlight Style ─────────────────────────────────────────────────── */
@@ -505,4 +526,37 @@ html.clarity-focus body {
 /* Focus mode line scale support ─────────────────────────────────────────────── */
 html.clarity-focus body {
   line-height: calc(1.85 * var(--clarity-line-scale)) !important;
+}
+
+/* ── Breathing Exercise Overlay ─────────────────────────────────────────────── */
+.clarity-breathing-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 1s ease;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.clarity-breathing-circle {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: rgba(58, 170, 212, 0.15);
+  border: 3px solid #3AAAD4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 40px rgba(58, 170, 212, 0.3);
+}
+
+.clarity-breathing-text {
+  font-size: 26px;
+  font-weight: 500;
+  color: #1f2937;
+  text-align: center;
 }

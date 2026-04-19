@@ -127,17 +127,26 @@
       }
     }
 
-    // 6. Session duration (minutes)
+    // 6. Click Delay (Average time between clicks in the last interval)
+    let clickDelay = 0;
+    if (recentClicks.length > 1) {
+      let totalDelay = 0;
+      for (let i = 1; i < recentClicks.length; i++) {
+        totalDelay += recentClicks[i].ts - recentClicks[i - 1].ts;
+      }
+      clickDelay = totalDelay / (recentClicks.length - 1);
+    }
+
+    // 7. Session duration (minutes)
     const sessionMinutes = (now - signals.sessionStart) / 60000;
 
     return {
-      wpm: Math.round(wpm),
-      errorRate: Math.round(errorRate * 100) / 100,
-      jitter: Math.round(jitter),
-      scrollIrregularity: Math.round(scrollIrregularity),
-      repeatedClicks,
+      wpm: Math.round((signals.wordCount / (BATCH_INTERVAL / 60000))), // interval-based WPM
+      errorRate: totalKeys > 5 ? Math.round((signals.backspaces / totalKeys) * 100) / 100 : 0,
+      jitter: Math.round(clickDelay), // Use as Click Delay
+      scrollRate: Math.round((signals.scrollEvents.filter(s => s.ts >= window3s).reduce((a, b) => a + b.delta, 0) / window.innerHeight) * (60000 / BATCH_INTERVAL) * 10) / 10,
+      rageClicks: repeatedClicks,
       sessionMinutes: Math.round(sessionMinutes),
-      activeKeystrokes: recentKeys.length,
       timestamp: now,
     };
   }
@@ -149,20 +158,24 @@
     // Error rate: 0 = 0pts, 0.3+ = 30pts
     score += Math.min(metrics.errorRate / 0.3, 1) * 30;
 
-    // Cursor jitter: 0 = 0pts, 50px+ avg = 20pts
-    score += Math.min(metrics.jitter / 50, 1) * 20;
+    // Click Delay (jitter): 0 = 0pts, 2000ms+ = 20pts
+    score += Math.min(metrics.jitter / 2000, 1) * 20;
 
-    // Scroll irregularity: 0 = 0pts, 100+ = 15pts
-    score += Math.min(metrics.scrollIrregularity / 100, 1) * 15;
+    // Scroll Rate: 0 = 0pts, 10 pages/min+ = 15pts
+    score += Math.min(metrics.scrollRate / 10, 1) * 15;
 
-    // Repeated clicks: 0 = 0pts, 5+ = 20pts
-    score += Math.min(metrics.repeatedClicks / 5, 1) * 20;
+    // Rage clicks: 0 = 0pts, 5+ = 20pts
+    score += Math.min(metrics.rageClicks / 5, 1) * 20;
 
     // Session duration: 0 = 0pts, 120min+ = 15pts
     score += Math.min(metrics.sessionMinutes / 120, 1) * 15;
 
     return Math.min(Math.round(score), 100);
   }
+
+  // ── Auto-summarize cooldown ─────────────────────────────────────────────────
+  let lastAutoSummarize = 0;
+  const AUTO_SUMMARIZE_COOLDOWN = 30000; // 30 seconds between triggers
 
   // ── Batch send to background ────────────────────────────────────────────────
   function sendBatch() {
@@ -174,6 +187,13 @@
       type: 'CLARITY_METRICS',
       payload: { metrics, fatigueScore }
     }).catch(() => {}); // ignore if popup closed
+
+    // Auto-summarize when scrolling fast (>5 pages/min)
+    const now = Date.now();
+    if (metrics.scrollRate > 5 && now - lastAutoSummarize > AUTO_SUMMARIZE_COOLDOWN) {
+      lastAutoSummarize = now;
+      chrome.runtime.sendMessage({ type: 'AUTO_SUMMARIZE_TRIGGER' }).catch(() => {});
+    }
 
     // Reset short-window counters (keep session-level ones)
     signals.backspaces = 0;

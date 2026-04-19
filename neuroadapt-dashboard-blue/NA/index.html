@@ -213,6 +213,21 @@
         </div>
       </div>
 
+      <!-- AI Weekly Recommendations -->
+      <div class="card" style="margin-bottom:20px; border: 1px solid rgba(58, 170, 212, 0.3); background: rgba(58, 170, 212, 0.03);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <div class="section-label" style="margin-bottom:0; color:var(--teal);">AI Insights: Weekly Attention Plan</div>
+          <button class="btn btn-sm btn-teal" id="btn-refresh-ai">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 102.6-6.4L2 8"/></svg>
+            Generate Plan
+          </button>
+        </div>
+        <div id="ai-recs-container" style="display:flex; flex-direction:column; gap:12px;">
+          <!-- Populated by JS -->
+          <div style="color:var(--text3); font-size:13px; text-align:center; padding: 12px;">Click 'Generate Plan' to get personalized improvement steps based on your weekly fatigue data.</div>
+        </div>
+      </div>
+
       <!-- Score trend chart + Session timeline -->
       <div class="g2">
         <div class="card">

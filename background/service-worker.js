@@ -43,6 +43,22 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       const { metrics, fatigueScore } = msg.payload;
       lastFatigueScore = fatigueScore;
       chrome.storage.local.set({ lastMetrics: metrics, fatigueScore, lastUpdate: Date.now() });
+
+      // ── Store daily fatigue for weekly tracking ──────────────────────────────
+      const today = new Date().toISOString().slice(0, 10); // "2026-04-19"
+      chrome.storage.local.get('weeklyFatigue', data => {
+        const weekly = data.weeklyFatigue || {};
+        if (!weekly[today]) weekly[today] = { scores: [], count: 0 };
+        weekly[today].scores.push(fatigueScore);
+        weekly[today].count++;
+        // Keep only last 7 days
+        const keys = Object.keys(weekly).sort();
+        while (keys.length > 7) {
+          delete weekly[keys.shift()];
+        }
+        chrome.storage.local.set({ weeklyFatigue: weekly });
+      });
+
       if (sender.tab?.id) {
         chrome.tabs.sendMessage(sender.tab.id, {
           type: 'CLARITY_METRICS_UPDATE', fatigueScore,
@@ -91,6 +107,22 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
     case 'RELAY_TO_TAB': {
       if (msg.tabId) chrome.tabs.sendMessage(msg.tabId, msg.message).catch(() => {});
+      break;
+    }
+
+    case 'DOM_SNAPSHOT': {
+      // Forward the DOM snapshot from content script to sidebar for AI classification
+      chrome.runtime.sendMessage({
+        type: 'DOM_SNAPSHOT',
+        elements: msg.elements,
+        tabId: sender.tab?.id,
+      }).catch(() => {});
+      break;
+    }
+
+    case 'AUTO_SUMMARIZE_TRIGGER': {
+      // Forward fast-scroll trigger from content script to sidebar
+      chrome.runtime.sendMessage({ type: 'AUTO_SUMMARIZE_TRIGGER' }).catch(() => {});
       break;
     }
   }

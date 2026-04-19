@@ -66,7 +66,7 @@
       if (el.id === 'clarity-focus-toolbar') return;
 
       // Clear previous classes first
-      el.classList.remove('clarity-distraction-hidden', 'clarity-distraction-dimmed', 'clarity-highlight');
+      el.classList.remove('clarity-distraction-hidden', 'clarity-distraction-dimmed', 'clarity-highlight', 'clarity-essential');
 
       if (classification === 'distraction') {
         el.classList.add('clarity-distraction-hidden');
@@ -74,6 +74,8 @@
         el.classList.add('clarity-distraction-dimmed');
       } else if (classification === 'highlight') {
         el.classList.add('clarity-highlight');
+      } else if (classification === 'essential') {
+        el.classList.add('clarity-essential');
       }
     });
   }
@@ -81,7 +83,7 @@
   // ── Restore all elements ─────────────────────────────────────────────────────
   function restoreAll() {
     elementRegistry.forEach(({ el }) => {
-      el.classList.remove('clarity-distraction-hidden', 'clarity-distraction-dimmed', 'clarity-highlight');
+      el.classList.remove('clarity-distraction-hidden', 'clarity-distraction-dimmed', 'clarity-highlight', 'clarity-essential');
     });
   }
 
