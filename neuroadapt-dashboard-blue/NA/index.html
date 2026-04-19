@@ -9,6 +9,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 
+  <!-- Chart.js library for all graphs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+
   <!-- Our custom styles -->
   <link rel="stylesheet" href="style.css">
 </head>
@@ -25,7 +28,7 @@
     <div class="logo-block">
       <div class="logo-row">
         <div class="logo-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#3AAAD4" stroke-width="2" stroke-linecap="round">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#5eead4" stroke-width="2" stroke-linecap="round">
             <path d="M12 2a7 7 0 017 7c0 4-3 6-4 9H9c-1-3-4-5-4-9a7 7 0 017-7z"/>
             <path d="M9 17h6M10 20h4"/>
           </svg>
@@ -135,15 +138,15 @@
           <div class="ring-container">
             <svg width="150" height="150" viewBox="0 0 150 150">
               <!-- Background track circle -->
-              <circle cx="75" cy="75" r="62" fill="none" stroke="var(--bg4)" stroke-width="10"/>
+              <circle cx="75" cy="75" r="62" fill="none" stroke="#1e2129" stroke-width="10"/>
               <!-- Filled score arc — stroke-dashoffset controls fill amount -->
-              <circle id="scoreRing" cx="75" cy="75" r="62" fill="none" stroke="var(--warn)" stroke-width="10"
+              <circle id="scoreRing" cx="75" cy="75" r="62" fill="none" stroke="#fcd34d" stroke-width="10"
                 stroke-dasharray="389.6" stroke-dashoffset="148"
                 stroke-linecap="round" transform="rotate(-90 75 75)"
                 style="transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1)"/>
             </svg>
             <div class="ring-num">
-              <div class="ring-score" id="scoreNum" style="color:var(--warn)">62</div>
+              <div class="ring-score" id="scoreNum" style="color:#fcd34d">62</div>
               <div class="ring-max">/ 100</div>
             </div>
           </div>
@@ -232,7 +235,7 @@
       <div class="g2">
         <div class="card">
           <div class="section-label">Score trend · today</div>
-          <div class="chart-box chart-box--md"><canvas id="trendChart"></canvas></div>
+          <canvas id="trendChart" height="90"></canvas>
         </div>
         <div class="card">
           <div class="section-label">Session timeline</div>
@@ -302,13 +305,13 @@
         <div class="score-ring-wrap">
           <div class="ring-container">
             <svg width="150" height="150" viewBox="0 0 150 150">
-              <circle cx="75" cy="75" r="62" fill="none" stroke="var(--bg4)" stroke-width="10"/>
-              <circle cx="75" cy="75" r="62" fill="none" stroke="var(--warn)" stroke-width="10"
+              <circle cx="75" cy="75" r="62" fill="none" stroke="#1e2129" stroke-width="10"/>
+              <circle cx="75" cy="75" r="62" fill="none" stroke="#fcd34d" stroke-width="10"
                 stroke-dasharray="389.6" stroke-dashoffset="148"
                 stroke-linecap="round" transform="rotate(-90 75 75)"/>
             </svg>
             <div class="ring-num">
-              <div class="ring-score" style="color:var(--warn)">62</div>
+              <div class="ring-score" style="color:#fcd34d">62</div>
               <div class="ring-max">/ 100</div>
             </div>
           </div>
@@ -360,23 +363,23 @@
       <!-- Signal charts -->
       <div class="card" style="margin-bottom:18px">
         <div class="section-label">Typing rhythm · keystroke gap (ms) over session</div>
-        <div class="chart-box chart-box--sm"><canvas id="typingChart"></canvas></div>
+        <canvas id="typingChart" height="60"></canvas>
       </div>
 
       <div class="g2" style="margin-bottom:18px">
         <div class="card">
           <div class="section-label">Error rate over time (%)</div>
-          <div class="chart-box chart-box--sm"><canvas id="errorChart"></canvas></div>
+          <canvas id="errorChart" height="80"></canvas>
         </div>
         <div class="card">
           <div class="section-label">Scroll reversal frequency (/min)</div>
-          <div class="chart-box chart-box--sm"><canvas id="scrollChart"></canvas></div>
+          <canvas id="scrollChart" height="80"></canvas>
         </div>
       </div>
 
       <div class="card">
         <div class="section-label">FragileScore · last 7 sessions</div>
-        <div class="chart-box chart-box--sm"><canvas id="histDetailChart"></canvas></div>
+        <canvas id="histDetailChart" height="60"></canvas>
       </div>
 
     </div><!-- end page-scoredetail -->
@@ -418,7 +421,7 @@
       <!-- Weekly pattern chart -->
       <div class="card" style="margin-bottom:20px">
         <div class="section-label">Weekly pattern</div>
-        <div class="chart-box chart-box--md"><canvas id="patternChart"></canvas></div>
+        <canvas id="patternChart" height="60"></canvas>
       </div>
 
       <!-- Session list — populated by buildHistoryList() in app.js -->
@@ -437,7 +440,7 @@
       <div class="phead">
         <div>
           <div class="ptitle">Help &amp; Support</div>
-          <div class="psub">Professional support and shareable session reports</div>
+          <div class="psub">Professional support and resources</div>
         </div>
       </div>
 
@@ -489,45 +492,7 @@
 
       </div><!-- end g2 -->
 
-      <!-- Session report card -->
-      <div class="report-block">
-        <div class="report-head">
-          <div>
-            <div class="rhead-title">Session report · Arjun R.</div>
-            <div class="rhead-meta">19 Apr 2026 · Duration 42 min · FragileScore 62</div>
-          </div>
-          <span class="badge badge-warn">Fragile</span>
-        </div>
 
-        <div class="g4" style="margin-bottom:18px">
-          <div style="text-align:center;padding:14px 12px;background:var(--bg3);border-radius:var(--r12);border:1px solid var(--border)">
-            <div style="font-size:26px;font-weight:700;color:var(--warn);font-family:var(--mono)">62</div>
-            <div style="font-size:11px;color:var(--text3);margin-top:3px">FragileScore</div>
-          </div>
-          <div style="text-align:center;padding:14px 12px;background:var(--bg3);border-radius:var(--r12);border:1px solid var(--border)">
-            <div style="font-size:26px;font-weight:700;font-family:var(--mono)">34</div>
-            <div style="font-size:11px;color:var(--text3);margin-top:3px">Avg WPM</div>
-          </div>
-          <div style="text-align:center;padding:14px 12px;background:var(--bg3);border-radius:var(--r12);border:1px solid var(--border)">
-            <div style="font-size:26px;font-weight:700;color:var(--danger);font-family:var(--mono)">18%</div>
-            <div style="font-size:11px;color:var(--text3);margin-top:3px">Error rate</div>
-          </div>
-          <div style="text-align:center;padding:14px 12px;background:var(--bg3);border-radius:var(--r12);border:1px solid var(--border)">
-            <div style="font-size:26px;font-weight:700;font-family:var(--mono)">42m</div>
-            <div style="font-size:11px;color:var(--text3);margin-top:3px">Duration</div>
-          </div>
-        </div>
-
-        <div style="font-size:12.5px;color:var(--text3);line-height:1.75;margin-bottom:18px;padding:14px 16px;background:var(--bg3);border-radius:var(--r12);border:1px solid var(--border)">
-          <strong style="color:var(--text2)">Clinical summary:</strong> Session exhibited elevated typing latency (38% above personal baseline), significantly increased correction rate (260% above baseline), and elevated scroll reversal frequency (14/min vs. 3/min baseline). Cursor jitter and click delay remained within normal parameters. The pattern is consistent with cognitive fatigue onset, likely exacerbated by sustained attention demands over 42 minutes. Recommended interventions include structured break cycles, task complexity reduction, and monitoring for score persistence across subsequent sessions.
-        </div>
-
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn btn-teal btn-sm">Download PDF</button>
-          <button class="btn btn-sm">Send to therapist</button>
-          <button class="btn btn-sm">Copy link</button>
-        </div>
-      </div>
 
     </div><!-- end page-help -->
 
@@ -677,10 +642,9 @@
   </main><!-- end .main -->
 </div><!-- end .app -->
 
-<!-- Chart.js (CDN — load before our chart code) -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<!-- a_charts.js must come BEFORE app.js because app.js calls initAllCharts() -->
-<script src="a_charts.js"></script>
+<!-- Our JavaScript files — loaded at the bottom so HTML exists first -->
+<!-- charts.js must come BEFORE app.js because app.js calls initAllCharts() -->
+<script src="charts.js"></script>
 <script src="app.js"></script>
 
 </body>
