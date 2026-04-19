@@ -51,3 +51,24 @@ async def get_me(x_user_id: str = Header(...)):
         name       = user.name,
         created_at = user.created_at,
     )
+
+
+@router.delete("/", status_code=204)
+async def delete_user_data(x_user_id: str = Header(...)):
+    """
+    DESTRUCTIVE ACTION: Deletes the user profile and ALL associated data.
+    """
+    from app.models.models import Session, Suggestion, UserSettings, OllamaChat
+    
+    # Delete user
+    user = await User.find_one(User.user_id == x_user_id)
+    if user:
+        await user.delete()
+    
+    # Delete everything else linked to this user_id
+    await Session.find(Session.user_id == x_user_id).delete()
+    await Suggestion.find(Suggestion.user_id == x_user_id).delete()
+    await UserSettings.find(UserSettings.user_id == x_user_id).delete()
+    await OllamaChat.find(OllamaChat.user_id == x_user_id).delete()
+    
+    return

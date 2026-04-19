@@ -26,10 +26,22 @@
    * Compute step-based UI adaptation.
    * As long as fatigue is spiked (>= 50), it bumps font size up significantly (0.40 scale)
    * every 3 seconds until it hits the maximum cap. Does not shrink back.
+   * If the spike persists for a long time (30 seconds), it auto-triggers a breathing exercise.
    */
   function applyAdaptiveUI(score) {
     // Detect a spike (Fragile or worse)
     if (score >= 50) {
+      sustainedSpikeCount++;
+      
+      // Auto-trigger breathing exercise if fatigue is sustained for 30 seconds (10 intervals)
+      if (sustainedSpikeCount === 10) {
+        showToast(
+          'Your fatigue has been elevated for a while. Let\'s do a quick breathing exercise.',
+          8000,
+          [{ label: 'Start Breathing', action: 'start_breathing' }]
+        );
+      }
+      
       // Keep bumping up every 3 seconds as long as fatigue stays high, until cap
       if (currentFontScale < 3.2) { // Raised cap to allow more bumps
         currentFontScale += SCALE_BUMP;
@@ -41,6 +53,8 @@
         document.documentElement.style.setProperty('--clarity-line-scale', currentLineScale.toFixed(3));
         document.documentElement.style.setProperty('--clarity-letter-spacing', currentLetterSpacing.toFixed(4) + 'em');
       }
+    } else {
+      sustainedSpikeCount = 0; // Spike broken, reset
     }
   }
 
@@ -226,6 +240,10 @@
 
       case 'DEACTIVATE_FOCUS':
         deactivateFocusMode();
+        break;
+
+      case 'TRIGGER_BREATHING_EXERCISE':
+        startBreathingExercise();
         break;
 
       case 'CHECK_BREAK':

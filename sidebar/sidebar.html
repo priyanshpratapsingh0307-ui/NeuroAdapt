@@ -156,16 +156,35 @@
         </div>
       </div>
 
-      <!-- Session Reset Card -->
-      <div class="action-card clickable" id="btn-reset">
-        <div class="action-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+      <!-- Deep Focus Timer Card -->
+      <div class="action-card" id="focus-timer-card">
+        <div class="action-icon" style="color:var(--lav)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         </div>
         <div class="action-info">
-          <div class="action-title">Session Reset</div>
-          <div class="action-desc">Clear all readings</div>
+          <div class="action-title">Deep Focus Timer</div>
+          <div class="action-desc" id="timer-status"></div>
+        </div>
+        <div class="timer-controls" style="display:flex; gap:8px; margin-top:8px; align-items:center; width:100%">
+          <input type="number" id="timer-input" placeholder="Min" style="width:50px; background:var(--bg2); border:1px solid var(--border); border-radius:4px; color:var(--text1); padding:4px; font-family:var(--mono); font-size:12px; text-align:center;">
+          <button id="btn-start-timer" style="background:var(--lav); color:var(--bg0); border:none; border-radius:4px; padding:4px 10px; font-weight:600; font-size:12px; cursor:pointer;">Start</button>
+          <button id="btn-stop-timer" style="display:none; background:var(--danger); color:white; border:none; border-radius:4px; padding:4px 10px; font-weight:600; font-size:12px; cursor:pointer;">Stop</button>
         </div>
       </div>
+    </div>
+
+    <!-- Precautions Section -->
+    <div class="precautions-section" style="margin:20px; padding:16px; background:var(--bg1); border:1px solid var(--border); border-radius:12px;">
+      <div style="font-size:13px; font-weight:600; color:var(--text1); margin-bottom:10px; display:flex; align-items:center; gap:6px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        Precautions & ADHD Tips
+      </div>
+      <ul style="font-size:12px; color:var(--text2); line-height:1.5; margin:0; padding-left:18px; display:flex; flex-direction:column; gap:6px;">
+        <li>Break large tasks into smaller, manageable chunks (15-20 min).</li>
+        <li>Keep your workspace clear of visual distractions and multiple tabs.</li>
+        <li>Use brown or white noise to drown out sudden background sounds.</li>
+        <li>Drink water; mild dehydration significantly affects cognitive focus.</li>
+      </ul>
     </div>
 
   </div>
@@ -186,9 +205,16 @@
           <button class="s-save" id="backend-url-save">Save</button>
         </div>
         <label class="s-label">Ollama Model</label>
-        <div class="s-row">
+        <div class="s-row" style="margin-bottom:16px;">
           <input type="text" id="ollama-model-input" class="s-input" placeholder="mistral"/>
           <button class="s-save" id="ollama-model-save">Save</button>
+        </div>
+        
+        <div style="border-top:1px solid var(--border); padding-top:16px; margin-top:8px;">
+          <button id="btn-reset" style="width:100%; background:var(--danger-dim); color:var(--danger); border:1px solid rgba(248,113,113,0.3); padding:8px; border-radius:6px; cursor:pointer; font-size:13px; font-weight:600; display:flex; justify-content:center; align-items:center; gap:8px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+            Reset Session Data
+          </button>
         </div>
       </div>
     </div>

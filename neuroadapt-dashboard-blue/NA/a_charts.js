@@ -49,23 +49,35 @@ const L30 = Array.from({ length: 30 }, (_, i) => i % 5 === 0 ? i + 'm' : '');
 
 /* ─── DASHBOARD: SCORE TREND CHART ──────────────────────
    Line chart on the Dashboard showing the cognitive load
-   score rising over the last 30 minutes of the session.  */
-function initTrendChart() {
+   score rising over time. */
+function initTrendChart(trendData = null) {
   if (typeof Chart === 'undefined') return;
   const el = document.getElementById('trendChart');
   if (!el) return;
+  
+  // Destroy existing chart if it exists to allow re-initialization with new data
+  const existing = Chart.getChart(el);
+  if (existing) existing.destroy();
+
+  const labels = trendData ? trendData.map(d => {
+    const date = new Date(d.timestamp);
+    return date.getHours() + ":" + String(date.getMinutes()).padStart(2, '0');
+  }) : L30;
+
+  const scores = trendData ? trendData.map(d => d.score) : [22,25,28,30,35,38,42,40,44,48,50,52,55,54,58,60,59,61,63,62,65,64,62,61,60,62,63,62,61,62];
+
   new Chart(el, {
     type: 'line',
     data: {
-      labels: L30,
+      labels: labels,
       datasets: [{
-        data: [22,25,28,30,35,38,42,40,44,48,50,52,55,54,58,60,59,61,63,62,65,64,62,61,60,62,63,62,61,62],
+        data: scores,
         borderColor: '#3AAAD4',
         borderWidth: 2,
         fill: true,
         backgroundColor: 'rgba(58, 170, 212, 0.08)',
         tension: .4,
-        pointRadius: 0
+        pointRadius: trendData ? 3 : 0
       }]
     },
     options: { ...baseOpts }
@@ -73,9 +85,7 @@ function initTrendChart() {
 }
 
 
-/* ─── SCORE DETAIL: TYPING RHYTHM CHART ─────────────────
-   Shows how keystroke gap (ms) increases over time —
-   a rising line means the user is slowing down (fatigue). */
+/* ─── SCORE DETAIL: TYPING RHYTHM CHART ───────────────── */
 function initTypingChart() {
   if (typeof Chart === 'undefined') return;
   const el = document.getElementById('typingChart');
@@ -99,10 +109,7 @@ function initTypingChart() {
 }
 
 
-/* ─── SCORE DETAIL: ERROR RATE BAR CHART ────────────────
-   Bar chart where each bar represents a 3-minute window.
-   Color changes automatically: green → yellow → red
-   based on how high the error rate is.                   */
+/* ─── SCORE DETAIL: ERROR RATE BAR CHART ──────────────── */
 function initErrorChart() {
   if (typeof Chart === 'undefined') return;
   const el = document.getElementById('errorChart');
@@ -127,9 +134,7 @@ function initErrorChart() {
 }
 
 
-/* ─── SCORE DETAIL: SCROLL REVERSAL CHART ───────────────
-   Lavender line chart showing how many times the user
-   scrolled backward per minute — indicates re-reading.  */
+/* ─── SCORE DETAIL: SCROLL REVERSAL CHART ─────────────── */
 function initScrollChart() {
   if (typeof Chart === 'undefined') return;
   const el = document.getElementById('scrollChart');
@@ -153,19 +158,24 @@ function initScrollChart() {
 }
 
 
-/* ─── SCORE DETAIL: 7-SESSION HISTORY CHART ─────────────
-   Line chart showing this week's daily FragileScore.
-   Dots on data points make individual sessions readable. */
-function initHistDetailChart() {
+/* ─── SCORE DETAIL: 7-SESSION HISTORY CHART ───────────── */
+function initHistDetailChart(historyData = null) {
   if (typeof Chart === 'undefined') return;
   const el = document.getElementById('histDetailChart');
   if (!el) return;
+
+  const existing = Chart.getChart(el);
+  if (existing) existing.destroy();
+
+  const labels = historyData ? historyData.map(h => h.date) : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const scores = historyData ? historyData.map(h => h.score) : [72, 68, 65, 58, 61, 55, 62];
+
   new Chart(el, {
     type: 'line',
     data: {
-      labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      labels: labels,
       datasets: [{
-        data: [72, 68, 65, 58, 61, 55, 62],
+        data: scores,
         borderColor: '#3AAAD4',
         borderWidth: 2,
         fill: true,
@@ -182,9 +192,7 @@ function initHistDetailChart() {
 }
 
 
-/* ─── HISTORY PAGE: WEEKLY PATTERN CHART ────────────────
-   Grouped bar chart showing Morning / Afternoon / Evening
-   scores for each day. Helps spot time-of-day patterns.  */
+/* ─── HISTORY PAGE: WEEKLY PATTERN CHART ──────────────── */
 function initPatternChart() {
   if (typeof Chart === 'undefined') return;
   const el = document.getElementById('patternChart');
@@ -213,15 +221,13 @@ function initPatternChart() {
 }
 
 
-/* ─── INIT ALL CHARTS ────────────────────────────────────
-   Called once from app.js after the DOM is ready.
-   All chart canvases must exist in the HTML before this runs. */
-function initAllCharts() {
-  initTrendChart();
+/* ─── INIT ALL CHARTS ──────────────────────────────────── */
+function initAllCharts(data = {}) {
+  initTrendChart(data.trend);
   initTypingChart();
   initErrorChart();
   initScrollChart();
-  initHistDetailChart();
+  initHistDetailChart(data.history);
   initPatternChart();
 }
 

@@ -43,10 +43,16 @@ const barRage = $('bar-rage');
 const focusToggle = $('focus-toggle');
 const focusStatus = $('focus-status');
 const summarizeBtn = $('summarize-btn');
-const btnReset = $('btn-reset');
+const btnReset = $('btn-reset'); // Moved to settings
 const settingsBtn = $('settings-btn');
 const settingsOverlay = $('settings-overlay');
 const settingsClose = $('settings-close');
+
+// Timer
+const btnStartTimer = $('btn-start-timer');
+const btnStopTimer = $('btn-stop-timer');
+const timerInput = $('timer-input');
+const timerStatus = $('timer-status');
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ── CORE LOGIC ────────────────────────────────══════════════════════════════════
@@ -95,7 +101,7 @@ function updateGauge(score) {
  */
 function updateMetrics(m) {
   if (!m) return;
-  
+
   // Update Values
   if (mWpm) mWpm.textContent = m.wpm || '0';
   if (mError) mError.textContent = Math.round((m.errorRate || 0) * 100);
@@ -118,7 +124,7 @@ focusToggle?.addEventListener('change', () => {
   const active = focusToggle.checked;
   focusModeActive = active;
   if (focusStatus) focusStatus.textContent = active ? 'On — AI cleaning page' : 'Off — distractions allowed';
-  
+
   chrome.storage.local.set({ focusModeActive: active });
   if (active) {
     chrome.runtime.sendMessage({ type: 'COMMAND_FOCUS_MODE' });
@@ -127,6 +133,62 @@ focusToggle?.addEventListener('change', () => {
     chrome.runtime.sendMessage({ type: 'COMMAND_DEACTIVATE_FOCUS' });
     if (activeTabId) chrome.tabs.sendMessage(activeTabId, { type: 'RESTORE_DISTRACTIONS' }).catch(() => { });
   }
+});
+
+/**
+ * Deep Focus Timer
+ */
+let deepFocusInterval = null;
+let deepFocusEndTime = 0;
+
+btnStartTimer?.addEventListener('click', () => {
+  const mins = parseInt(timerInput.value, 10);
+  if (isNaN(mins) || mins <= 0) return;
+
+  deepFocusEndTime = Date.now() + mins * 60000;
+  btnStartTimer.style.display = 'none';
+  timerInput.style.display = 'none';
+  btnStopTimer.style.display = 'inline-block';
+
+  if (!focusModeActive) {
+    focusToggle.checked = true;
+    focusToggle.dispatchEvent(new Event('change'));
+  }
+
+  deepFocusInterval = setInterval(() => {
+    const remaining = deepFocusEndTime - Date.now();
+    if (remaining <= 0) {
+      clearInterval(deepFocusInterval);
+      timerStatus.textContent = 'Session complete! Breathing started...';
+      btnStartTimer.style.display = 'inline-block';
+      timerInput.style.display = 'inline-block';
+      btnStopTimer.style.display = 'none';
+
+      // Trigger breathing exercise via content script
+      if (activeTabId) {
+        chrome.tabs.sendMessage(activeTabId, { type: 'TRIGGER_BREATHING_EXERCISE' }).catch(() => { });
+      }
+
+      // Deactivate focus mode
+      focusToggle.checked = false;
+      focusToggle.dispatchEvent(new Event('change'));
+    } else {
+      const m = Math.floor(remaining / 60000);
+      const s = Math.floor((remaining % 60000) / 1000);
+      timerStatus.textContent = `Deep work: ${m}m ${s}s remaining`;
+    }
+  }, 1000);
+
+  // Trigger initial visual update immediately
+  timerStatus.textContent = `Deep work: ${mins}m 0s remaining`;
+});
+
+btnStopTimer?.addEventListener('click', () => {
+  clearInterval(deepFocusInterval);
+  // timerStatus.textContent = 'Set duration for deep work';
+  btnStartTimer.style.display = 'inline-block';
+  timerInput.style.display = 'inline-block';
+  btnStopTimer.style.display = 'none';
 });
 
 /**
@@ -235,9 +297,9 @@ chrome.runtime.onMessage.addListener(msg => {
   if (msg.type === 'CLARITY_METRICS') {
     updateGauge(msg.payload.fatigueScore);
     updateMetrics(msg.payload.metrics);
-    chrome.storage.local.set({ 
+    chrome.storage.local.set({
       fatigueScore: msg.payload.fatigueScore,
-      lastMetrics: msg.payload.metrics 
+      lastMetrics: msg.payload.metrics
     });
   }
 
@@ -296,7 +358,7 @@ chrome.runtime.onMessage.addListener(msg => {
         chrome.tabs.sendMessage(sourceTabId, {
           type: 'FOCUS_AGENT_RESULT',
           classifications: classifications,
-        }).catch(() => {});
+        }).catch(() => { });
 
       } catch (err) {
         console.warn('[NeuroAdapt] AI classification failed, using fallback:', err.message);
@@ -309,7 +371,7 @@ chrome.runtime.onMessage.addListener(msg => {
         chrome.tabs.sendMessage(sourceTabId, {
           type: 'FOCUS_AGENT_RESULT',
           classifications: fallback,
-        }).catch(() => {});
+        }).catch(() => { });
       }
     })();
   }
@@ -353,7 +415,7 @@ chrome.storage.local.get(['backendUrl', 'ollamaModel', 'fatigueScore', 'lastMetr
   }
   updateGauge(data.fatigueScore || 0);
   updateMetrics(data.lastMetrics || {});
-  
+
   if (data.focusModeActive) {
     focusToggle.checked = true;
     focusModeActive = true;
