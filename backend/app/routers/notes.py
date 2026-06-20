@@ -4,7 +4,7 @@ from typing import Optional, List
 from datetime import datetime, timezone
 
 from app.models.models import MemoryNote, User
-from app.services.gemini_service import gemini_service
+from app.services.gemini_service import generate_response
 
 router = APIRouter(prefix="/api/notes", tags=["notes"])
 
@@ -96,6 +96,6 @@ async def organize_notes(x_user_id: str = Header(...)):
     prompt = f"Please organize these scattered thoughts and working memory fragments into a clean, structured summary with action items where applicable:\n\n{text_blob}"
     
     # We use gemini_service since Mistral was swapped to Gemini earlier
-    reply = await gemini_service.generate_chat_reply(prompt, [])
+    reply = await generate_response(prompt)
     
     return {"summary": reply}

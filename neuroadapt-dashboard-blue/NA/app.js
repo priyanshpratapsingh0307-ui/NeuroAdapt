@@ -1,3 +1,5 @@
+const BACKEND_URL = 'http://127.0.0.1:8000';
+
 /* ─── STORAGE UTILITY ───────────────────────────────────── */
 /**
  * Safely retrieves the userId from chrome.storage.local.
