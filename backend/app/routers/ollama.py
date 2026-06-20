@@ -3,6 +3,8 @@ from pydantic import BaseModel
 from typing import Literal, Optional
 from datetime import datetime, timezone
 
+from app.services.gemini_service import generate_response
+
 import httpx
 
 from app.core.config import settings
@@ -181,8 +183,11 @@ async def ollama_chat(
         else:
             print(f"[Ollama] No transcript found. Summarizing metadata only.")
 
+    # prompt = _build_chat_prompt(payload)
+    # reply  = await _call_mistral(prompt)
+
     prompt = _build_chat_prompt(payload)
-    reply  = await _call_mistral(prompt)
+    reply = await generate_response(prompt)
 
     now = datetime.now(timezone.utc)
 
@@ -194,7 +199,7 @@ async def ollama_chat(
             page_title=payload.page_title or "",
             user_message=payload.user_message[:500],
             reply=reply,
-            model=settings.OLLAMA_MODEL,
+            model=settings.GEMINI_MODEL,
         )
         await record.insert()
         now = record.timestamp
@@ -203,6 +208,6 @@ async def ollama_chat(
 
     return OllamaChatResponse(
         reply=reply,
-        model=settings.OLLAMA_MODEL,
+        model=settings.GEMINI_MODEL,
         timestamp=now,
     )
