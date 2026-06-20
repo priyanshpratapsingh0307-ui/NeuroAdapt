@@ -7,6 +7,8 @@ from app.schemas.schemas import SessionCreate, SessionResponse
 from app.services.suggestion_service import check_and_generate_suggestion
 from app.services.notification_service import format_push_payload
 
+# TODO Fix routing
+
 router = APIRouter(prefix="/api/sessions", tags=["sessions"])
 
 

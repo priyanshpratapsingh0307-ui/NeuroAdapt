@@ -136,13 +136,13 @@
               &nbsp;Live monitoring · Session started 0 min ago
             </div>
           </div>
-          <button class="btn btn-sm">
+          <button class="btn btn-sm" id="btn-export-session" onclick="exportSessionsCSV()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
               <polyline points="7 10 12 15 17 10" />
               <line x1="12" y1="15" x2="12" y2="3" />
             </svg>
-            Export session
+            Export CSV
           </button>
         </div>
 
@@ -228,8 +228,8 @@
           </div>
           <div class="metric-card">
             <div class="metric-label">Focus mode</div>
-            <div class="metric-val" style="color:var(--ok)">Active</div>
-            <div class="metric-delta" style="color:var(--ok)">Distractions filtered</div>
+            <div class="metric-val" id="focus-mode-val" style="color:var(--text3)">—</div>
+            <div class="metric-delta" id="focus-mode-sub" style="color:var(--text3)">Loading...</div>
           </div>
         </div>
 
@@ -262,36 +262,14 @@
           </div>
           <div class="card">
             <div class="section-label">Session timeline</div>
-            <div class="tl-item">
-              <div class="tl-dot" style="background:var(--danger)"></div>
-              <div class="tl-time">42 min ago</div>
-              <div>
-                <div class="tl-text">Entered Fragile zone</div>
-                <div class="tl-sub">Typing gap exceeded threshold</div>
-              </div>
-            </div>
-            <div class="tl-item">
-              <div class="tl-dot" style="background:var(--warn)"></div>
-              <div class="tl-time">28 min ago</div>
-              <div>
-                <div class="tl-text">Error rate spike</div>
-                <div class="tl-sub">18 corrections in 2 minutes</div>
-              </div>
-            </div>
-            <div class="tl-item">
-              <div class="tl-dot" style="background:var(--ok)"></div>
-              <div class="tl-time">12 min ago</div>
-              <div>
-                <div class="tl-text">Brief recovery period</div>
-                <div class="tl-sub">Score dipped to 51 momentarily</div>
-              </div>
-            </div>
-            <div class="tl-item">
-              <div class="tl-dot" style="background:var(--teal)"></div>
-              <div class="tl-time">Now</div>
-              <div>
-                <div class="tl-text">Monitoring active</div>
-                <div class="tl-sub">All signals within capture range</div>
+            <div id="session-timeline">
+              <div class="tl-item">
+                <div class="tl-dot" style="background:var(--teal)"></div>
+                <div class="tl-time">Now</div>
+                <div>
+                  <div class="tl-text">Monitoring active</div>
+                  <div class="tl-sub">Loading recent sessions...</div>
+                </div>
               </div>
             </div>
           </div>
@@ -313,7 +291,7 @@
             <div class="psub">Deep analysis of all cognitive signals · current session</div>
           </div>
           <div style="display:flex;align-items:center;gap:10px">
-            <span class="badge badge-warn" style="font-size:14px;padding:6px 14px">62 · Fragile</span>
+            <span class="badge badge-warn" id="detail-badge" style="font-size:14px;padding:6px 14px">— · —</span>
             <button class="btn btn-sm" onclick="nav('dashboard')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="15 18 9 12 15 6" />
@@ -329,69 +307,57 @@
             <div class="ring-container">
               <svg width="150" height="150" viewBox="0 0 150 150">
                 <circle cx="75" cy="75" r="62" fill="none" stroke="var(--bg4)" stroke-width="10" />
-                <circle cx="75" cy="75" r="62" fill="none" stroke="var(--warn)" stroke-width="10"
-                  stroke-dasharray="389.6" stroke-dashoffset="148" stroke-linecap="round"
-                  transform="rotate(-90 75 75)" />
+                <circle id="detailRing" cx="75" cy="75" r="62" fill="none" stroke="var(--warn)" stroke-width="10"
+                  stroke-dasharray="389.6" stroke-dashoffset="389.6" stroke-linecap="round"
+                  transform="rotate(-90 75 75)" style="transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1)" />
               </svg>
               <div class="ring-num">
-                <div class="ring-score" style="color:var(--warn)">62</div>
+                <div class="ring-score" id="detailScoreNum" style="color:var(--text3)">—</div>
                 <div class="ring-max">/ 100</div>
               </div>
             </div>
-            <span class="badge badge-warn">Fatigue</span>
+            <span class="badge badge-warn" id="detail-ring-badge">—</span>
           </div>
 
           <div>
             <div class="section-label">Signal contribution breakdown</div>
             <div class="mini-bar-row">
               <span class="mbl">Typing rhythm</span>
-              <div class="mbt">
-                <div class="mbf" style="width:72%;background:var(--danger)"></div>
-              </div>
-              <span class="mbv" style="color:var(--danger)">72</span>
+              <div class="mbt"><div class="mbf" id="bar-typing" style="width:0%;background:var(--danger)"></div></div>
+              <span class="mbv" id="val-typing" style="color:var(--danger)">—</span>
             </div>
             <div class="mini-bar-row">
               <span class="mbl">Error rate</span>
-              <div class="mbt">
-                <div class="mbf" style="width:68%;background:var(--warn)"></div>
-              </div>
-              <span class="mbv" style="color:var(--warn)">68</span>
+              <div class="mbt"><div class="mbf" id="bar-error" style="width:0%;background:var(--warn)"></div></div>
+              <span class="mbv" id="val-error" style="color:var(--warn)">—</span>
             </div>
             <div class="mini-bar-row">
               <span class="mbl">Scroll behavior</span>
-              <div class="mbt">
-                <div class="mbf" style="width:55%;background:var(--warn)"></div>
-              </div>
-              <span class="mbv" style="color:var(--warn)">55</span>
+              <div class="mbt"><div class="mbf" id="bar-scroll" style="width:0%;background:var(--warn)"></div></div>
+              <span class="mbv" id="val-scroll" style="color:var(--warn)">—</span>
             </div>
             <div class="mini-bar-row">
               <span class="mbl">Click delay</span>
-              <div class="mbt">
-                <div class="mbf" style="width:44%;background:var(--lav)"></div>
-              </div>
-              <span class="mbv" style="color:var(--lav)">44</span>
+              <div class="mbt"><div class="mbf" id="bar-click" style="width:0%;background:var(--lav)"></div></div>
+              <span class="mbv" id="val-click" style="color:var(--lav)">—</span>
             </div>
             <div class="mini-bar-row">
-              <span class="mbl">Cursor jitter</span>
-              <div class="mbt">
-                <div class="mbf" style="width:28%;background:var(--ok)"></div>
-              </div>
-              <span class="mbv" style="color:var(--ok)">28</span>
+              <span class="mbl">Rage clicks</span>
+              <div class="mbt"><div class="mbf" id="bar-rage" style="width:0%;background:var(--ok)"></div></div>
+              <span class="mbv" id="val-rage" style="color:var(--ok)">—</span>
             </div>
           </div>
         </div>
 
         <!-- Why/driver explanation cards -->
         <div class="g2" style="margin-bottom:20px">
-          <div class="why-block" style="background:var(--danger-dim);border-color:rgba(248,113,113,.2)">
-            <div class="why-title" style="color:var(--danger)">Primary driver — Typing rhythm</div>
-            <div class="why-body">Keystroke gaps are 38% longer than your personal baseline. Widening gaps between
-              keystrokes is a reliable early indicator of cognitive fatigue onset.</div>
+          <div class="why-block" id="driver-primary" style="background:var(--danger-dim);border-color:rgba(248,113,113,.2)">
+            <div class="why-title" id="driver-primary-title" style="color:var(--danger)">Primary driver — loading...</div>
+            <div class="why-body" id="driver-primary-body">Analysing session signals...</div>
           </div>
-          <div class="why-block" style="background:var(--warn-dim);border-color:rgba(252,211,77,.2)">
-            <div class="why-title" style="color:var(--warn)">Secondary — Error rate spike</div>
-            <div class="why-body">3.6× more corrections than baseline. Elevated corrections indicate reduced working
-              memory capacity and increased re-reading cycles.</div>
+          <div class="why-block" id="driver-secondary" style="background:var(--warn-dim);border-color:rgba(252,211,77,.2)">
+            <div class="why-title" id="driver-secondary-title" style="color:var(--warn)">Secondary — loading...</div>
+            <div class="why-body" id="driver-secondary-body">Analysing session signals...</div>
           </div>
         </div>
 
@@ -432,8 +398,8 @@
             <div class="psub">All recorded monitoring sessions</div>
           </div>
           <div style="display:flex;gap:8px">
-            <button class="btn btn-sm">Export CSV</button>
-            <button class="btn btn-teal btn-sm">Generate report</button>
+            <button class="btn btn-sm" onclick="exportSessionsCSV()">Export CSV</button>
+            <button class="btn btn-teal btn-sm" onclick="generateAIPlan()">Generate report</button>
           </div>
         </div>
 
@@ -441,15 +407,15 @@
         <div class="g3" style="margin-bottom:22px">
           <div class="metric-card" style="text-align:center">
             <div class="metric-label">Avg score · 7 days</div>
-            <div class="metric-val" style="color:var(--warn)">58</div>
+            <div class="metric-val" id="hist-avg-score" style="color:var(--text3)">—</div>
           </div>
           <div class="metric-card" style="text-align:center">
             <div class="metric-label">Total sessions</div>
-            <div class="metric-val">24</div>
+            <div class="metric-val" id="hist-total-sessions">—</div>
           </div>
           <div class="metric-card" style="text-align:center">
             <div class="metric-label">Trend vs last week</div>
-            <div class="metric-val" style="color:var(--ok)">−8 pts</div>
+            <div class="metric-val" id="hist-trend-delta" style="color:var(--text3)">—</div>
           </div>
         </div>
 
@@ -542,24 +508,20 @@
           </div>
 
           <div class="g4" style="margin-bottom:18px">
-            <div
-              style="text-align:center;padding:14px 12px;background:var(--bg3);border-radius:var(--r12);border:1px solid var(--border)">
-              <div style="font-size:26px;font-weight:700;color:var(--warn);font-family:var(--mono)">62</div>
+            <div style="text-align:center;padding:14px 12px;background:var(--bg3);border-radius:var(--r12);border:1px solid var(--border)">
+              <div id="report-score" style="font-size:26px;font-weight:700;color:var(--text3);font-family:var(--mono)">—</div>
               <div style="font-size:11px;color:var(--text3);margin-top:3px">FragileScore</div>
             </div>
-            <div
-              style="text-align:center;padding:14px 12px;background:var(--bg3);border-radius:var(--r12);border:1px solid var(--border)">
-              <div style="font-size:26px;font-weight:700;font-family:var(--mono)">34</div>
+            <div style="text-align:center;padding:14px 12px;background:var(--bg3);border-radius:var(--r12);border:1px solid var(--border)">
+              <div id="report-wpm" style="font-size:26px;font-weight:700;font-family:var(--mono)">—</div>
               <div style="font-size:11px;color:var(--text3);margin-top:3px">Avg WPM</div>
             </div>
-            <div
-              style="text-align:center;padding:14px 12px;background:var(--bg3);border-radius:var(--r12);border:1px solid var(--border)">
-              <div style="font-size:26px;font-weight:700;color:var(--danger);font-family:var(--mono)">18%</div>
+            <div style="text-align:center;padding:14px 12px;background:var(--bg3);border-radius:var(--r12);border:1px solid var(--border)">
+              <div id="report-error" style="font-size:26px;font-weight:700;color:var(--text3);font-family:var(--mono)">—</div>
               <div style="font-size:11px;color:var(--text3);margin-top:3px">Error rate</div>
             </div>
-            <div
-              style="text-align:center;padding:14px 12px;background:var(--bg3);border-radius:var(--r12);border:1px solid var(--border)">
-              <div style="font-size:26px;font-weight:700;font-family:var(--mono)">42m</div>
+            <div style="text-align:center;padding:14px 12px;background:var(--bg3);border-radius:var(--r12);border:1px solid var(--border)">
+              <div id="report-duration" style="font-size:26px;font-weight:700;font-family:var(--mono)">—</div>
               <div style="font-size:11px;color:var(--text3);margin-top:3px">Duration</div>
             </div>
           </div>
@@ -582,7 +544,7 @@
       <!-- ══════════════════════════════════════════════════════════════
            PAGE: BLOCKLIST
            ══════════════════════════════════════════════════════════════ -->
-      <div id="page-blocklist" class="page" style="display:none">
+      <div id="page-blocklist" class="page">
         <div class="phead">
           <div>
             <div class="ptitle">Smart Blocklist</div>
@@ -651,7 +613,7 @@
       <!-- ══════════════════════════════════════════════════════════════
            PAGE: WORKING MEMORY
            ══════════════════════════════════════════════════════════════ -->
-      <div id="page-memory" class="page" style="display:none">
+      <div id="page-memory" class="page">
         <div class="phead">
           <div>
             <div class="ptitle">Working Memory Aid</div>

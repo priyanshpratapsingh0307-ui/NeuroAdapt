@@ -1,9 +1,10 @@
 from fastapi import APIRouter, HTTPException, Header
 from pydantic import BaseModel
 from typing import Optional, List
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+from collections import defaultdict
 
-from app.models.models import BlocklistRule, User
+from app.models.models import BlocklistRule, User, Session
 
 router = APIRouter(prefix="/api/blocklist", tags=["blocklist"])
 
@@ -46,7 +47,7 @@ async def create_blocklist_rule(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
         
-    # Check if exists
+    # Check if exists — update if so
     existing = await BlocklistRule.find_one(
         BlocklistRule.user_id == x_user_id,
         BlocklistRule.domain == payload.domain
@@ -81,14 +82,67 @@ async def create_blocklist_rule(
         avg_score_increase=rule.avg_score_increase
     )
 
+@router.delete("/{rule_id}", status_code=204)
+async def delete_blocklist_rule(
+    rule_id: str,
+    x_user_id: str = Header(...)
+):
+    """Remove a blocklist rule. Only allowed if it belongs to this user."""
+    rule = await BlocklistRule.get(rule_id)
+    if not rule:
+        raise HTTPException(status_code=404, detail="Rule not found")
+    if rule.user_id != x_user_id:
+        raise HTTPException(status_code=403, detail="Not your rule")
+    await rule.delete()
+    return
+
 @router.get("/suggestions")
 async def get_blocklist_suggestions(x_user_id: str = Header(...)):
     """
-    Mock endpoint for demonstration purposes. In a real scenario, this would
-    analyze Session data to find domains with highest post-visit fatigue spikes.
+    Analyses the last 30 days of sessions and surfaces the top 5 domains
+    with the highest average fatigue score that are NOT already blocked.
     """
-    # Just returning a few hardcoded suggestions for demo
-    return [
-        { "domain": "amazon.com", "avg_score_increase": 21 },
-        { "domain": "tiktok.com", "avg_score_increase": 15 }
-    ]
+    user = await User.find_one(User.user_id == x_user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    since = datetime.now(timezone.utc) - timedelta(days=30)
+    sessions = await Session.find(
+        Session.user_id == x_user_id,
+        Session.timestamp >= since
+    ).to_list()
+
+    if not sessions:
+        return []
+
+    # Aggregate average fatigue score per domain
+    domain_scores: dict[str, list[float]] = defaultdict(list)
+    for s in sessions:
+        if s.site_url:
+            # Normalise to bare domain (strip scheme + path)
+            domain = s.site_url.split("//")[-1].split("/")[0].lstrip("www.")
+            domain_scores[domain].append(s.fatigue_score)
+
+    # Compute averages, keep only domains with ≥ 2 sessions
+    averages = {
+        domain: sum(scores) / len(scores)
+        for domain, scores in domain_scores.items()
+        if len(scores) >= 2
+    }
+
+    # Fetch already-blocked domains so we don't suggest them again
+    existing_rules = await BlocklistRule.find(BlocklistRule.user_id == x_user_id).to_list()
+    blocked_domains = {r.domain.lstrip("www.") for r in existing_rules}
+
+    # Sort descending by average score, exclude already-blocked, take top 5
+    suggestions = sorted(
+        [
+            {"domain": domain, "avg_score_impact": round(avg, 1), "session_count": len(domain_scores[domain])}
+            for domain, avg in averages.items()
+            if domain not in blocked_domains and avg >= 45
+        ],
+        key=lambda x: x["avg_score_impact"],
+        reverse=True
+    )[:5]
+
+    return suggestions

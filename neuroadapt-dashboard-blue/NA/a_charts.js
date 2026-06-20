@@ -86,22 +86,29 @@ function initTrendChart(trendData = null) {
 
 
 /* ─── SCORE DETAIL: TYPING RHYTHM CHART ───────────────── */
-function initTypingChart() {
+function initTypingChart(wpmData = null) {
   if (typeof Chart === 'undefined') return;
   const el = document.getElementById('typingChart');
   if (!el) return;
+
+  const existing = Chart.getChart(el);
+  if (existing) existing.destroy();
+
+  const labels = wpmData ? Array.from({length: wpmData.length}, (_, i) => i + 'm') : L30;
+  const data = wpmData ? wpmData : [180,185,190,195,200,210,220,215,230,240,260,270,280,275,300,320,315,330,340,345,360,355,340,330,325,340,350,345,340,345];
+
   new Chart(el, {
     type: 'line',
     data: {
-      labels: L30,
+      labels: labels,
       datasets: [{
         label: 'Gap ms',
-        data: [180,185,190,195,200,210,220,215,230,240,260,270,280,275,300,320,315,330,340,345,360,355,340,330,325,340,350,345,340,345],
+        data: data,
         borderColor: '#F87171',
         borderWidth: 2,
         fill: false,
         tension: .4,
-        pointRadius: 0
+        pointRadius: wpmData ? 2 : 0
       }]
     },
     options: { ...baseOpts }
@@ -110,16 +117,23 @@ function initTypingChart() {
 
 
 /* ─── SCORE DETAIL: ERROR RATE BAR CHART ──────────────── */
-function initErrorChart() {
+function initErrorChart(errData = null) {
   if (typeof Chart === 'undefined') return;
   const el = document.getElementById('errorChart');
   if (!el) return;
+
+  const existing = Chart.getChart(el);
+  if (existing) existing.destroy();
+
+  const labels = errData ? Array.from({length: errData.length}, (_, i) => i * 3 + 'm') : Array.from({ length: 12 }, (_, i) => i * 3 + 'm');
+  const data = errData ? errData : [3,4,4,5,6,7,8,10,12,14,16,18];
+
   new Chart(el, {
     type: 'bar',
     data: {
-      labels: Array.from({ length: 12 }, (_, i) => i * 3 + 'm'),
+      labels: labels,
       datasets: [{
-        data: [3,4,4,5,6,7,8,10,12,14,16,18],
+        data: data,
         backgroundColor: (context) => {
           const raw = context.parsed?.y ?? context.dataset.data[context.dataIndex];
           const v = typeof raw === 'number' ? raw : Number(raw);
@@ -135,22 +149,29 @@ function initErrorChart() {
 
 
 /* ─── SCORE DETAIL: SCROLL REVERSAL CHART ─────────────── */
-function initScrollChart() {
+function initScrollChart(scrollData = null) {
   if (typeof Chart === 'undefined') return;
   const el = document.getElementById('scrollChart');
   if (!el) return;
+
+  const existing = Chart.getChart(el);
+  if (existing) existing.destroy();
+
+  const labels = scrollData ? Array.from({length: scrollData.length}, (_, i) => i * 3 + 'm') : Array.from({ length: 12 }, (_, i) => i * 3 + 'm');
+  const data = scrollData ? scrollData : [2,2,3,3,4,5,6,7,9,11,13,14];
+
   new Chart(el, {
     type: 'line',
     data: {
-      labels: Array.from({ length: 12 }, (_, i) => i * 3 + 'm'),
+      labels: labels,
       datasets: [{
-        data: [2,2,3,3,4,5,6,7,9,11,13,14],
+        data: data,
         borderColor: '#818CF8',
         borderWidth: 2,
         fill: true,
         backgroundColor: 'rgba(129, 140, 248, 0.08)',
         tension: .4,
-        pointRadius: 0
+        pointRadius: scrollData ? 2 : 0
       }]
     },
     options: { ...baseOpts }
@@ -193,18 +214,50 @@ function initHistDetailChart(historyData = null) {
 
 
 /* ─── HISTORY PAGE: WEEKLY PATTERN CHART ──────────────── */
-function initPatternChart() {
+function initPatternChart(sessionsArray = []) {
   if (typeof Chart === 'undefined') return;
   const el = document.getElementById('patternChart');
   if (!el) return;
+  
+  const existing = Chart.getChart(el);
+  if (existing) existing.destroy();
+
+  let morn = [0,0,0,0,0,0,0], aft = [0,0,0,0,0,0,0], eve = [0,0,0,0,0,0,0];
+  let mornC = [0,0,0,0,0,0,0], aftC = [0,0,0,0,0,0,0], eveC = [0,0,0,0,0,0,0];
+  
+  sessionsArray.forEach(s => {
+    // Parse the date (which was formatted locally) to get day and hour
+    const d = new Date(s.date);
+    let day = d.getDay() - 1; // 0=Mon, 6=Sun
+    if (day < 0) day = 6;
+    const h = d.getHours();
+    
+    if (h < 12) { morn[day] += s.score; mornC[day]++; }
+    else if (h < 17) { aft[day] += s.score; aftC[day]++; }
+    else { eve[day] += s.score; eveC[day]++; }
+  });
+  
+  for(let i=0; i<7; i++) {
+    if(mornC[i]) morn[i] = Math.round(morn[i]/mornC[i]);
+    if(aftC[i]) aft[i] = Math.round(aft[i]/aftC[i]);
+    if(eveC[i]) eve[i] = Math.round(eve[i]/eveC[i]);
+  }
+  
+  // if all empty, show default dummy
+  if (sessionsArray.length === 0) {
+    morn = [45,50,48,42,55,38,40];
+    aft = [62,68,72,60,75,44,62];
+    eve = [38,42,55,35,60,30,48];
+  }
+
   new Chart(el, {
     type: 'bar',
     data: {
       labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
       datasets: [
-        { label: 'Morning',   data: [45,50,48,42,55,38,40], backgroundColor: 'rgba(58, 170, 212, 0.6)',  borderRadius: 3 },
-        { label: 'Afternoon', data: [62,68,72,60,75,44,62], backgroundColor: 'rgba(251, 191, 36, 0.6)',  borderRadius: 3 },
-        { label: 'Evening',   data: [38,42,55,35,60,30,48], backgroundColor: 'rgba(129, 140, 248, 0.6)', borderRadius: 3 }
+        { label: 'Morning',   data: morn, backgroundColor: 'rgba(58, 170, 212, 0.6)',  borderRadius: 3 },
+        { label: 'Afternoon', data: aft, backgroundColor: 'rgba(251, 191, 36, 0.6)',  borderRadius: 3 },
+        { label: 'Evening',   data: eve, backgroundColor: 'rgba(129, 140, 248, 0.6)', borderRadius: 3 }
       ]
     },
     options: {
