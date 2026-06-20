@@ -1,0 +1,14 @@
+fastapi
+uvicorn[standard]
+motor
+beanie
+pydantic
+pydantic-settings
+python-dotenv
+httpx
+google-genai
+youtube-transcript-api
+requests
+passlib[bcrypt]
+python-jose
+python-multipart
