@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NeuroAdapt - Site Blocked</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #0f172a;
+      color: #e2e8f0;
+      font-family: 'DM Sans', -apple-system, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+    }
+    .container {
+      max-width: 500px;
+      padding: 40px;
+      background: rgba(30, 41, 59, 0.5);
+      border-radius: 20px;
+      border: 1px solid rgba(125, 211, 252, 0.1);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    }
+    h1 {
+      font-size: 24px;
+      color: #fca5a5;
+      margin-bottom: 16px;
+    }
+    p {
+      font-size: 16px;
+      color: #94a3b8;
+      line-height: 1.6;
+      margin-bottom: 30px;
+    }
+    .breathing-circle {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background: rgba(125, 211, 252, 0.1);
+      border: 2px solid #7dd3fc;
+      margin: 0 auto 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 30px rgba(125, 211, 252, 0.2);
+    }
+    .breathing-text {
+      font-size: 20px;
+      font-weight: 500;
+      color: #7dd3fc;
+    }
+    .btn-close {
+      background: transparent;
+      border: 1px solid #475569;
+      color: #e2e8f0;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    .btn-close:hover {
+      background: #1e293b;
+      border-color: #64748b;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Smart Blocklist Active</h1>
+    <p>This site has been blocked by your NeuroAdapt rules to protect your focus and reduce fatigue.</p>
+    
+    <div class="breathing-circle" id="b-circle">
+      <div class="breathing-text" id="b-text">Breathe</div>
+    </div>
+
+    <button class="btn-close" id="close-tab">Close Tab</button>
+  </div>
+  <script src="blocked.js"></script>
+</body>
+</html>

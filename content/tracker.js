@@ -173,27 +173,47 @@
     return Math.min(Math.round(score), 100);
   }
 
-  // ── Auto-summarize cooldown ─────────────────────────────────────────────────
-  let lastAutoSummarize = 0;
-  const AUTO_SUMMARIZE_COOLDOWN = 30000; // 30 seconds between triggers
-
+  // ── Hyperfocus detection ────────────────────────────────────────────────────
+  let consecutiveFocusIntervals = 0;
+  let isHyperfocused = false;
+  let frozenFatigueScore = 0;
+  let wasHyperfocused = false;
   // ── Batch send to background ────────────────────────────────────────────────
   function sendBatch() {
     checkIdle();
     const metrics = computeMetrics();
-    const fatigueScore = computeFatigueScore(metrics);
+    
+    // Hyperfocus logic: typing fast with low errors, or steady reading
+    const isTypingFocused = metrics.wpm >= 25 && metrics.errorRate <= 0.15;
+    const isReadingFocused = metrics.wpm === 0 && metrics.scrollRate > 1 && metrics.scrollRate < 15 && metrics.rageClicks === 0;
+    
+    if (isTypingFocused || isReadingFocused) {
+      consecutiveFocusIntervals++;
+    } else {
+      consecutiveFocusIntervals = 0;
+    }
+    
+    // 3 consecutive intervals (9s) to trigger
+    isHyperfocused = consecutiveFocusIntervals >= 3;
+    metrics.isHyperfocused = isHyperfocused;
+
+    let fatigueScore = computeFatigueScore(metrics);
+    
+    if (isHyperfocused) {
+      if (!wasHyperfocused) {
+        frozenFatigueScore = fatigueScore;
+      }
+      fatigueScore = frozenFatigueScore;
+      wasHyperfocused = true;
+    } else {
+      wasHyperfocused = false;
+    }
 
     chrome.runtime.sendMessage({
       type: 'CLARITY_METRICS',
       payload: { metrics, fatigueScore }
     }).catch(() => {}); // ignore if popup closed
 
-    // Auto-summarize when scrolling fast (>5 pages/min)
-    const now = Date.now();
-    if (metrics.scrollRate > 5 && now - lastAutoSummarize > AUTO_SUMMARIZE_COOLDOWN) {
-      lastAutoSummarize = now;
-      chrome.runtime.sendMessage({ type: 'AUTO_SUMMARIZE_TRIGGER' }).catch(() => {});
-    }
 
     // Reset short-window counters (keep session-level ones)
     signals.backspaces = 0;

@@ -127,3 +127,60 @@ class OllamaChat(Document):
 
     class Settings:
         name = "ollama_chats"             # MongoDB collection name
+
+class TaskAnchor(Document):
+    """
+    Records an anchored task session.
+    """
+    user_id: str
+    task_name: str
+    status: str = "active"                # "active", "paused", "completed"
+    start_time: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    end_time: Optional[datetime] = None
+
+    class Settings:
+        name = "task_anchors"
+
+class TaskDriftEvent(Document):
+    """
+    Logs when a user drifts from their anchored task.
+    """
+    user_id: str
+    task_anchor_id: str                   # links to TaskAnchor
+    task_name: str
+    site_url: str                         # where they drifted to
+    page_title: str
+    action_taken: str                     # "back_to_task", "its_research", "ignored"
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+    class Settings:
+        name = "task_drift_events"
+
+class BlocklistRule(Document):
+    """
+    Stores a domain to block and the blocking mode.
+    """
+    user_id: str
+    domain: str                           # e.g. "reddit.com"
+    mode: str                             # "hard", "soft", "fatigue", "time", "session"
+    threshold: Optional[float] = None     # used if mode == "fatigue" (e.g. 65)
+    avg_score_increase: Optional[float] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+    class Settings:
+        name = "blocklist_rules"
+
+class MemoryNote(Document):
+    """
+    Working Memory Aid notes.
+    """
+    user_id: str
+    content: str
+    note_type: str                        # "thought", "bookmark", "redirect", "fragment"
+    url: Optional[str] = None
+    domain: Optional[str] = None
+    task_anchor_id: Optional[str] = None
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+    class Settings:
+        name = "memory_notes"

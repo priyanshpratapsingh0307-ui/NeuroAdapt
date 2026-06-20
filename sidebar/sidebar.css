@@ -162,7 +162,7 @@ body {
 
 /* ── SETTINGS ───────────────────────────────────────── */
 .settings-trigger {
-  position: absolute; bottom: 24px; right: 24px;
+  position: absolute; bottom: 80px; right: 24px;
   width: 44px; height: 44px; border-radius: 50%;
   background: white; border: none; color: var(--text-muted);
   box-shadow: var(--shadow-soft); display: flex; align-items: center; justify-content: center;
@@ -210,11 +210,13 @@ body {
 
 /* ── CHATBOT ───────────────────────────────────────── */
 .chat-section {
-  margin: 14px 0;
+  margin: 0;
   background: white;
-  border-radius: 24px;
-  box-shadow: var(--shadow-soft);
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -4px 20px rgba(58, 170, 212, 0.1);
   overflow: hidden;
+  flex-shrink: 0;
+  z-index: 50;
 }
 
 .chat-header {

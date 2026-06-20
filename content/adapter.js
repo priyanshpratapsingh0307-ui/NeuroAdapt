@@ -12,6 +12,13 @@
   let hardInterventionTimer = null;
   let lastLevelThreeStart   = null;
   let lastFatigueScore      = 0;
+  let hyperfocusToastShown  = false;
+  let fatigueHighStartTime  = null;
+  let microBreakSnoozedUntil = 0;
+
+  // ── Sensory Noise Filter State ────────────────────────────────────────────
+  let sensoryFilterOverride = false;
+  let sensoryLevel = 0;
 
   // ── Adaptive UI: step-based scaling state ─────────────────────────────────
   let sustainedSpikeCount = 0;
@@ -89,6 +96,14 @@
     return clone.innerText.trim().slice(0, 14000);
   }
 
+  // ── Smart Blocklist Intervention ──────────────────────────────────────
+  chrome.runtime.onMessage.addListener((msg) => {
+    if (msg.type === 'TRIGGER_SOFT_BLOCK') {
+      showDopamineDelay();
+      return;
+    }
+  });
+
   // ── Toast notification ───────────────────────────────────────────────────────
   function showToast(message, duration = 5000, actions = []) {
     const existing = document.getElementById('clarity-toast');
@@ -128,6 +143,12 @@
         if (action === 'focus_mode') activateFocusMode();
         if (action === 'dismiss_break') breakNudgeShown = true;
         if (action === 'start_breathing') startBreathingExercise();
+        if (action === 'back_to_task') {
+            if (history.length > 1) history.back();
+            else window.close();
+        }
+        if (action === 'its_research') chrome.runtime.sendMessage({ type: 'WHITELIST_DOMAIN_FOR_TASK', url: location.href });
+        if (action === 'pause_anchor') chrome.runtime.sendMessage({ type: 'STOP_TASK_ANCHOR' });
         
         toast.classList.remove('clarity-toast--visible');
         setTimeout(() => toast.remove(), 300);
@@ -140,6 +161,295 @@
         setTimeout(() => toast.remove(), 300);
       }, duration);
     }
+  }
+
+  // ── Sensory Noise Filter ──────────────────────────────────────────────────
+  function applySensoryFilter(score) {
+    if (sensoryFilterOverride) return;
+
+    let newLevel = 0;
+    if (score >= 70) newLevel = 2; // Strained
+    else if (score >= 40) newLevel = 1; // Fragile
+    
+    if (newLevel !== sensoryLevel) {
+      sensoryLevel = newLevel;
+      document.documentElement.classList.remove('clarity-sensory-fragile', 'clarity-sensory-strained');
+      
+      if (sensoryLevel >= 1) {
+        document.documentElement.classList.add('clarity-sensory-fragile');
+        freezeMedia();
+        showSensoryBanner();
+        chrome.runtime.sendMessage({ type: 'MUTE_ACTIVE_TAB' });
+      }
+      if (sensoryLevel === 2) {
+        document.documentElement.classList.add('clarity-sensory-strained');
+        activateFocusMode(); 
+      }
+      if (sensoryLevel === 0) {
+        hideSensoryBanner();
+      }
+    }
+  }
+
+  function freezeMedia() {
+    document.querySelectorAll('video, audio').forEach(media => {
+      media.muted = true;
+      try { media.pause(); } catch(e){}
+    });
+    
+    document.querySelectorAll('img').forEach(img => {
+      if (img.src && img.src.toLowerCase().includes('.gif')) {
+        try {
+          if (!img.complete || img.naturalWidth === 0) return;
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, img.width, img.height);
+          img.dataset.originalSrc = img.src;
+          img.src = canvas.toDataURL();
+        } catch(e) {}
+      }
+    });
+  }
+
+  function showSensoryBanner() {
+    if (document.getElementById('clarity-sensory-banner')) return;
+    const banner = document.createElement('div');
+    banner.id = 'clarity-sensory-banner';
+    banner.innerHTML = `
+      <span>Sensory filter active — some content simplified.</span>
+      <button id="clarity-sensory-restore">Restore</button>
+    `;
+    document.body.appendChild(banner);
+    
+    document.getElementById('clarity-sensory-restore').addEventListener('click', () => {
+      sensoryFilterOverride = true;
+      hideSensoryBanner();
+      document.documentElement.classList.remove('clarity-sensory-fragile', 'clarity-sensory-strained');
+      document.querySelectorAll('video, audio').forEach(media => media.muted = false);
+      document.querySelectorAll('img[data-original-src]').forEach(img => {
+        img.src = img.dataset.originalSrc;
+      });
+      chrome.runtime.sendMessage({ type: 'UNMUTE_ACTIVE_TAB' });
+      if (sensoryLevel === 2) deactivateFocusMode();
+      sensoryLevel = 0;
+    });
+  }
+
+  function hideSensoryBanner() {
+    const banner = document.getElementById('clarity-sensory-banner');
+    if (banner) banner.remove();
+  }
+
+  function playSoftChime() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(432, ctx.currentTime);
+      gain.gain.setValueAtTime(0, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.05, ctx.currentTime + 0.5);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 3);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 3);
+    } catch(e) {}
+  }
+
+  function showMicroBreakIntervention() {
+    if (document.querySelector('.clarity-microbreak-overlay')) return;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'clarity-microbreak-overlay';
+    overlay.innerHTML = `
+      <div class="clarity-microbreak-dialog">
+        <div class="clarity-microbreak-header">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+          Your brain needs a moment
+        </div>
+        <p>Fatigue score is high. A short reset now saves you from prolonged struggling.</p>
+        <div class="clarity-microbreak-actions">
+          <button data-action="start_breathing">Start breathing</button>
+          <button data-action="eye_rest">Eye rest</button>
+          <button data-action="blank_rest">Blank rest</button>
+          <button data-action="snooze_break" class="clarity-btn-secondary">5 more min</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+    requestAnimationFrame(() => overlay.classList.add('clarity-visible'));
+
+    overlay.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const action = btn.dataset.action;
+        overlay.classList.remove('clarity-visible');
+        setTimeout(() => overlay.remove(), 500);
+
+        if (action === 'start_breathing') startBreathingExercise();
+        if (action === 'eye_rest') startEyeRest();
+        if (action === 'blank_rest') startBlankRest();
+        if (action === 'snooze_break') {
+          microBreakSnoozedUntil = Date.now() + 5 * 60 * 1000;
+        }
+      });
+    });
+  }
+
+  function startEyeRest() {
+    const overlay = document.createElement('div');
+    overlay.className = 'clarity-eye-rest-overlay clarity-fonts';
+    overlay.innerHTML = `
+      <div style="text-align:center; color:white; font-family:'DM Sans',sans-serif;">
+        <div style="font-size: 24px; margin-bottom: 10px; font-weight:bold;">20-20-20 Rule</div>
+        <div style="font-size: 16px; margin-bottom: 20px; color:#ddd;">Look at something 20 feet away.</div>
+        <div style="font-size: 64px; font-weight:300;" id="eye-rest-timer">20</div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    let seconds = 20;
+    const text = overlay.querySelector('#eye-rest-timer');
+    const interval = setInterval(() => {
+      seconds--;
+      text.textContent = seconds;
+      if (seconds <= 0) {
+        clearInterval(interval);
+        overlay.style.opacity = '0';
+        setTimeout(() => overlay.remove(), 1000);
+      }
+    }, 1000);
+  }
+
+  function startBlankRest() {
+    const overlay = document.createElement('div');
+    overlay.className = 'clarity-blank-rest-overlay';
+    document.body.appendChild(overlay);
+    
+    playSoftChime();
+
+    setTimeout(() => {
+      overlay.style.opacity = '0';
+      setTimeout(() => overlay.remove(), 1000);
+    }, 120000); // 2 minutes
+  }
+
+  // ── Working Memory Aid: Quick Capture ─────────────────────────────────────────
+  let quickCaptureOverlay = null;
+  function toggleQuickCapture() {
+    if (quickCaptureOverlay) {
+      quickCaptureOverlay.style.opacity = '0';
+      setTimeout(() => {
+        if (quickCaptureOverlay) quickCaptureOverlay.remove();
+        quickCaptureOverlay = null;
+      }, 300);
+      return;
+    }
+
+    quickCaptureOverlay = document.createElement('div');
+    quickCaptureOverlay.id = 'clarity-quick-capture';
+    quickCaptureOverlay.innerHTML = `
+      <div class="clarity-qc-dialog">
+        <div class="clarity-qc-header">Quick Capture</div>
+        <input type="text" id="clarity-qc-input" placeholder="What's on your mind? Press Enter to save" autocomplete="off" />
+        <div class="clarity-qc-footer">Saved instantly to Working Memory</div>
+      </div>
+    `;
+    document.body.appendChild(quickCaptureOverlay);
+
+    const input = quickCaptureOverlay.querySelector('#clarity-qc-input');
+    // small delay to allow DOM to render before focusing
+    setTimeout(() => input.focus(), 50);
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') toggleQuickCapture();
+      if (e.key === 'Enter') {
+        const content = input.value.trim();
+        if (content) {
+          saveMemoryNote(content);
+        }
+        toggleQuickCapture();
+      }
+    });
+    
+    // Close on click outside
+    quickCaptureOverlay.addEventListener('click', (e) => {
+      if (e.target === quickCaptureOverlay) toggleQuickCapture();
+    });
+  }
+
+  function saveMemoryNote(content) {
+    chrome.storage.local.get(['userId'], (data) => {
+      if (!data.userId) return;
+      fetch('http://localhost:8000/api/notes/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': data.userId },
+        body: JSON.stringify({
+          content: content,
+          note_type: 'thought',
+          url: window.location.href,
+          domain: window.location.hostname
+        })
+      }).catch(e => console.error("Failed to save note", e));
+    });
+  }
+
+  // Global Keyboard Shortcuts
+  document.addEventListener('keydown', (e) => {
+    // Alt + N for Quick Capture
+    if (e.altKey && e.code === 'KeyN') {
+      e.preventDefault();
+      toggleQuickCapture();
+    }
+  });
+
+  // ── Smart Blocklist: Soft Block (Dopamine Delay) ──────────────────────────
+  function showDopamineDelay() {
+    if (document.getElementById('clarity-dopamine-delay')) return;
+
+    const overlay = document.createElement('div');
+    overlay.id = 'clarity-dopamine-delay';
+    overlay.innerHTML = `
+      <div class="clarity-dopamine-dialog">
+        <h2>Dopamine Delay Active</h2>
+        <p>This site is on your smart blocklist. Take a breath.</p>
+        <div class="breathing-circle">
+          <div class="breathing-text" id="dd-text">10</div>
+        </div>
+        <div class="clarity-dopamine-actions" style="display:none;" id="dd-actions">
+          <button id="dd-continue">Continue to site</button>
+          <button id="dd-close" class="clarity-btn-secondary">Close Tab</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    let timeLeft = 10;
+    const textEl = overlay.querySelector('#dd-text');
+    const interval = setInterval(() => {
+      timeLeft--;
+      textEl.textContent = timeLeft;
+      if (timeLeft <= 0) {
+        clearInterval(interval);
+        textEl.textContent = "Ready";
+        overlay.querySelector('#dd-actions').style.display = 'flex';
+      }
+    }, 1000);
+
+    overlay.querySelector('#dd-continue').addEventListener('click', () => {
+      overlay.style.opacity = '0';
+      setTimeout(() => overlay.remove(), 500);
+    });
+    
+    overlay.querySelector('#dd-close').addEventListener('click', () => {
+      // Send message to background to close the tab
+      chrome.runtime.sendMessage({ type: 'CLOSE_ACTIVE_TAB' });
+      // Fallback
+      window.location.href = 'about:blank';
+    });
   }
 
   // ── Breathing Exercise Overlay ──────────────────────────────────────────────
@@ -244,6 +554,18 @@
         showToast(msg.message, msg.duration, msg.actions || []);
         break;
 
+      case 'SHOW_DRIFT_ALERT':
+        showToast(
+          `<b>Drifted from task</b><br>Your anchor: <i>"${msg.taskName}"</i><br>This site might not be related.`,
+          0,
+          [
+            { label: 'Back to task', action: 'back_to_task' },
+            { label: "It's research", action: 'its_research' },
+            { label: 'Pause anchor', action: 'pause_anchor' }
+          ]
+        );
+        break;
+
       case 'ACTIVATE_FOCUS':
         activateFocusMode();
         break;
@@ -269,10 +591,37 @@
         break;
 
       case 'CLARITY_METRICS_UPDATE': {
+        if (msg.isHyperfocused) {
+          if (!hyperfocusToastShown) {
+            hyperfocusToastShown = true;
+            showToast('🔥 Hyperfocus Active - Alerts suppressed', 4000);
+          }
+          // Suppress further UI adaptations and alerts while hyperfocused
+          break;
+        } else {
+          hyperfocusToastShown = false;
+        }
+
         lastFatigueScore = msg.fatigueScore;
         const level = getLevel(msg.fatigueScore);
+
+        // ── Micro-break Enforcer ──────────────────────────────────────────────
+        if (msg.fatigueScore >= 65) {
+          if (!fatigueHighStartTime) fatigueHighStartTime = Date.now();
+          else if (Date.now() - fatigueHighStartTime >= 5 * 60 * 1000) {
+            // 5 minutes sustained >= 65
+            if (Date.now() > microBreakSnoozedUntil && !focusModeActive) {
+               showMicroBreakIntervention();
+               fatigueHighStartTime = null; // reset so it triggers again later if needed
+            }
+          }
+        } else {
+          fatigueHighStartTime = null;
+        }
+
         applyAdaptation(level);
         applyAdaptiveUI(msg.fatigueScore); // Progressive font/spacing scaling
+        applySensoryFilter(msg.fatigueScore); // Applies the sensory noise filter
 
         // ── Hard intervention at level 3 ──────────────────────────────────────
         if (level === 3 && !focusModeActive) {
@@ -292,24 +641,6 @@
         } else {
           lastLevelThreeStart = null;
           if (hardInterventionTimer) { clearTimeout(hardInterventionTimer); hardInterventionTimer = null; }
-        }
-
-        // ── Auto-suggest focus mode & breathing at level 2+ ───────────────────
-        if (level >= 2 && !focusModeActive) {
-          const key = `clarity_focus_suggested_${Math.floor(Date.now() / 300000)}`;
-          chrome.storage.local.get(key, (data) => {
-            if (!data[key]) {
-              chrome.storage.local.set({ [key]: true });
-              showToast(
-                'High cognitive load detected. Time for a quick 4-7-8 breathing exercise to regain focus.',
-                12000,
-                [
-                  { label: 'Start Breathing', action: 'start_breathing' },
-                  { label: 'Focus Mode', action: 'focus_mode' }
-                ]
-              );
-            }
-          });
         }
 
         checkBreakNudge(msg.sessionMinutes);

@@ -2,7 +2,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from beanie import init_beanie
 
 from app.core.config import settings
-from app.models.models import User, Session, Suggestion, UserSettings, OllamaChat
+from app.models.models import User, Session, Suggestion, UserSettings, OllamaChat, TaskAnchor, TaskDriftEvent, BlocklistRule, MemoryNote
 
 
 async def init_db():
@@ -25,6 +25,10 @@ async def init_db():
             Suggestion,
             UserSettings,
             OllamaChat,
+            TaskAnchor,
+            TaskDriftEvent,
+            BlocklistRule,
+            MemoryNote,
         ],
     )
 

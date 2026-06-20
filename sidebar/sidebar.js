@@ -224,6 +224,36 @@ btnStopTimer?.addEventListener('click', () => {
 });
 
 /**
+ * Task Anchoring
+ */
+const anchorInput = $('anchor-input');
+const btnStartAnchor = $('btn-start-anchor');
+const btnStopAnchor = $('btn-stop-anchor');
+const anchorStatus = $('anchor-status');
+
+btnStartAnchor?.addEventListener('click', async () => {
+  const taskName = anchorInput?.value.trim();
+  if (!taskName) return;
+
+  btnStartAnchor.style.display = 'none';
+  anchorInput.style.display = 'none';
+  btnStopAnchor.style.display = 'inline-block';
+  if (anchorStatus) anchorStatus.textContent = `Active task: ${taskName}`;
+
+  chrome.runtime.sendMessage({ type: 'START_TASK_ANCHOR', taskName });
+});
+
+btnStopAnchor?.addEventListener('click', async () => {
+  btnStartAnchor.style.display = 'inline-block';
+  anchorInput.style.display = 'inline-block';
+  anchorInput.value = '';
+  btnStopAnchor.style.display = 'none';
+  if (anchorStatus) anchorStatus.textContent = 'Set your intent to prevent drift';
+
+  chrome.runtime.sendMessage({ type: 'STOP_TASK_ANCHOR' });
+});
+
+/**
  * Reset Session
  */
 btnReset?.addEventListener('click', () => {

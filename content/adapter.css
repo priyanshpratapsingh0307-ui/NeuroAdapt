@@ -1,7 +1,7 @@
 /* clarity/content/adapter.css */
 /* Progressive UI adaptation styles injected into every page */
 
-/* ── CSS Variables ─────────────────────────────────────────────────────────── */
+/* â”€â”€ CSS Variables â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 :root {
   --clarity-font-scale: 1;
   --clarity-line-scale: 1;
@@ -12,7 +12,7 @@
   --clarity-anim-scale: 1;
 }
 
-/* ── Adaptive UI: Progressive scaling applied to body content ────────── */
+/* â”€â”€ Adaptive UI: Progressive scaling applied to body content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 /* Target only block-level root text containers to prevent nested compounding */
 body p, body li, body h1, body h2, body h3, body h4, body h5, body h6 {
   font-size: calc(1em * var(--clarity-font-scale)) !important;
@@ -21,7 +21,7 @@ body p, body li, body h1, body h2, body h3, body h4, body h5, body h6 {
   transition: font-size 0.8s ease, line-height 0.8s ease, letter-spacing 0.8s ease !important;
 }
 
-/* ── Level 1: Mild — subtle adjustments ────────────────────────────────────── */
+/* â”€â”€ Level 1: Mild â€” subtle adjustments â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 html.clarity-level-1 body {
   font-size: calc(1em * var(--clarity-font-scale) * 1.02) !important;
   line-height: calc(1.5 * var(--clarity-line-height)) !important;
@@ -31,7 +31,7 @@ html.clarity-level-1 * {
   transition-duration: calc(var(--clarity-anim-scale) * 0.7) !important;
 }
 
-/* ── Level 2: Moderate — perceptual dimming of distractions ─────────────────── */
+/* â”€â”€ Level 2: Moderate â€” perceptual dimming of distractions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 html.clarity-level-2 body {
   font-size: calc(1em * var(--clarity-font-scale) * 1.05) !important;
   line-height: calc(1.65 * var(--clarity-line-height)) !important;
@@ -40,11 +40,11 @@ html.clarity-level-2 * {
   animation-duration: 0.1ms !important;
   transition-duration: 0.1ms !important;
 }
-/* Desaturate the whole page subtly… */
+/* Desaturate the whole page subtlyâ€¦ */
 html.clarity-level-2 body {
   filter: saturate(0.75) brightness(0.97) !important;
 }
-/* …but keep main content sharp */
+/* â€¦but keep main content sharp */
 html.clarity-level-2 article,
 html.clarity-level-2 main,
 html.clarity-level-2 [role="main"],
@@ -63,7 +63,7 @@ html.clarity-level-2 iframe:not([src*="youtube"]):not([src*="vimeo"]) {
   pointer-events: none !important;
 }
 
-/* ── Level 3: High — hard lock on peripherals ────────────────────────────────── */
+/* â”€â”€ Level 3: High â€” hard lock on peripherals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 html.clarity-level-3 body {
   font-size: calc(1em * var(--clarity-font-scale) * 1.12) !important;
   line-height: calc(1.85 * var(--clarity-line-height)) !important;
@@ -72,11 +72,11 @@ html.clarity-level-3 * {
   animation: none !important;
   transition: none !important;
 }
-/* Strong desaturation everywhere… */
+/* Strong desaturation everywhereâ€¦ */
 html.clarity-level-3 body {
   filter: saturate(0.45) brightness(0.92) !important;
 }
-/* …main content stays clear */
+/* â€¦main content stays clear */
 html.clarity-level-3 article,
 html.clarity-level-3 main,
 html.clarity-level-3 [role="main"] {
@@ -106,15 +106,15 @@ html.clarity-level-3::before {
 }
 
 
-/* ══════════════════════════════════════════════════════════════════════════════
-   FOCUS MODE — AI-DRIVEN CLASSIFICATION
-   ──────────────────────────────────────────────────────────────────────────────
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   FOCUS MODE â€” AI-DRIVEN CLASSIFICATION
+   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    The key design: we do NOT blanket-dim everything. Instead, we show a subtle
    "scanning" overlay while the AI analyses the page, then use per-element
    classification classes to dim only what the AI considers a distraction.
-   ══════════════════════════════════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
-/* ── Phase 1: "Scanning" overlay while AI is analysing ────────────────────── */
+/* â”€â”€ Phase 1: "Scanning" overlay while AI is analysing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 html.clarity-focus-scanning::after {
   content: '';
   position: fixed;
@@ -131,7 +131,7 @@ html.clarity-focus-scanning::after {
 }
 
 html.clarity-focus-scanning::before {
-  content: '◎ AI is analysing this page…';
+  content: 'â—Ž AI is analysing this pageâ€¦';
   position: fixed;
   top: 16px;
   left: 50%;
@@ -150,14 +150,14 @@ html.clarity-focus-scanning::before {
   pointer-events: none;
 }
 
-/* ── Phase 2: Active focus — NO blanket dimming. Per-element classes decide. ─ */
+/* â”€â”€ Phase 2: Active focus â€” NO blanket dimming. Per-element classes decide. â”€ */
 html.clarity-focus body {
   /* Subtle dark tint so classified elements pop against it */
   background: #0e1117 !important;
   transition: background 0.6s ease !important;
 }
 
-/* ── AI CLASSIFICATION CLASSES ─────────────────────────────────────────────── */
+/* â”€â”€ AI CLASSIFICATION CLASSES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 /* DISTRACTION: dimmed and de-interactive */
 .clarity-distraction-dimmed {
@@ -203,7 +203,7 @@ html.clarity-focus .clarity-essential {
 }
 
 .clarity-highlight::before {
-  content: '★ KEY CONTENT';
+  content: 'â˜… KEY CONTENT';
   position: absolute;
   top: -12px;
   right: 20px;
@@ -231,7 +231,7 @@ html.clarity-focus .clarity-essential {
 }
 
 
-/* ── YouTube-specific: always keep the video player visible ────────────────── */
+/* â”€â”€ YouTube-specific: always keep the video player visible â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 html.clarity-focus #movie_player,
 html.clarity-focus .html5-video-player,
 html.clarity-focus ytd-watch-flexy #player,
@@ -262,7 +262,7 @@ html.clarity-focus .clarity-breathing-overlay {
 }
 
 
-/* ── Focus toolbar ──────────────────────────────────────────────────────────── */
+/* â”€â”€ Focus toolbar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 #clarity-focus-toolbar {
   position: fixed;
   top: 0;
@@ -319,7 +319,7 @@ html.clarity-focus body {
 }
 
 
-/* ── Toast notifications ────────────────────────────────────────────────────── */
+/* â”€â”€ Toast notifications â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .clarity-toast {
   position: fixed;
   bottom: 24px;
@@ -418,7 +418,7 @@ html.clarity-focus body {
   color: #94a3b8;
 }
 
-/* ── Summary overlay ────────────────────────────────────────────────────────── */
+/* â”€â”€ Summary overlay â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 #clarity-summary-overlay {
   position: fixed;
   inset: 0;
@@ -524,7 +524,7 @@ html.clarity-focus body {
 }
 
 .clarity-summary-content li::before {
-  content: '◦';
+  content: 'â—¦';
   color: #7dd3fc;
   flex-shrink: 0;
   margin-top: 2px;
@@ -555,7 +555,7 @@ html.clarity-focus body {
 }
 
 
-/* ── Breathing Exercise Overlay ─────────────────────────────────────────────── */
+/* â”€â”€ Breathing Exercise Overlay â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .clarity-breathing-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -588,7 +588,7 @@ html.clarity-focus body {
   text-align: center;
 }
 
-/* ── Range Input ───────────────────────────────────────────────────────────── */
+/* â”€â”€ Range Input â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 input[type=range] {
   -webkit-appearance: none;
   width: 100%;
@@ -611,3 +611,174 @@ input[type=range]::-webkit-slider-thumb {
 }
 
 input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+/* ── Micro-break Enforcer ────────────────────────────────────────────────── */
+.clarity-microbreak-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.7); z-index: 2147483647; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(2px); transition: opacity 0.5s; opacity: 0; pointer-events: none; }
+.clarity-microbreak-overlay.clarity-visible { opacity: 1; pointer-events: auto; }
+.clarity-microbreak-dialog { background: #2a2a2a; color: #f1f1f1; padding: 24px; border-radius: 12px; width: 400px; max-width: 90%; font-family: 'DM Sans', sans-serif; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #444; }
+.clarity-microbreak-header { font-size: 18px; font-weight: 600; display: flex; align-items: center; margin-bottom: 12px; }
+.clarity-microbreak-dialog p { font-size: 14px; color: #bbb; margin-bottom: 24px; line-height: 1.5; }
+.clarity-microbreak-actions { display: flex; gap: 12px; }
+.clarity-microbreak-actions button { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #555; background: transparent; color: #fff; cursor: pointer; font-weight: 500; transition: all 0.2s; font-family: inherit; }
+.clarity-microbreak-actions button:hover { background: #333; }
+.clarity-microbreak-actions button.clarity-btn-secondary { border-color: transparent; color: #aaa; }
+.clarity-microbreak-actions button.clarity-btn-secondary:hover { background: #222; }
+.clarity-eye-rest-overlay, .clarity-blank-rest-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 2147483647; display: flex; align-items: center; justify-content: center; transition: opacity 1s; }
+.clarity-eye-rest-overlay { background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px); }
+.clarity-blank-rest-overlay { background: #111; }
+
+/* ── Sensory Noise Filter ────────────────────────────────────────────────── */
+
+/* User Control Banner */
+#clarity-sensory-banner {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  background: #333;
+  color: #ddd;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  padding: 6px 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  z-index: 2147483646;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+#clarity-sensory-banner button {
+  background: transparent; border: 1px solid #555; border-radius: 4px;
+  color: #fff; cursor: pointer; padding: 2px 8px; font-size: 12px;
+}
+#clarity-sensory-banner button:hover { background: #444; }
+
+/* Fragile State */
+html.clarity-sensory-fragile * {
+  animation-play-state: paused !important;
+}
+html.clarity-sensory-fragile .red-dot,
+html.clarity-sensory-fragile [class*='badge'],
+html.clarity-sensory-fragile [class*='notification'] {
+  opacity: 0.3 !important;
+  transition: opacity 0.3s;
+}
+html.clarity-sensory-fragile iframe:not(.youtube-protected),
+html.clarity-sensory-fragile [class*='ad-'],
+html.clarity-sensory-fragile [id*='ad-'],
+html.clarity-sensory-fragile [class*='banner'] {
+  display: none !important;
+}
+
+/* Strained State */
+html.clarity-sensory-strained {
+  filter: sepia(0.2) contrast(0.9) brightness(0.95);
+}
+
+/* ── Dopamine Delay (Soft Block) ─────────────────────────────────────────── */
+#clarity-dopamine-delay {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(10px);
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Sans', sans-serif;
+  color: #e2e8f0;
+  transition: opacity 0.5s ease;
+}
+.clarity-dopamine-dialog {
+  text-align: center;
+  max-width: 400px;
+}
+.clarity-dopamine-dialog h2 {
+  font-size: 24px;
+  color: #7dd3fc;
+  margin-bottom: 8px;
+}
+.clarity-dopamine-dialog p {
+  color: #94a3b8;
+  margin-bottom: 30px;
+}
+.clarity-dopamine-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 30px;
+  justify-content: center;
+}
+.clarity-dopamine-actions button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1px solid #475569;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.clarity-dopamine-actions button:hover {
+  background: #1e293b;
+}
+.clarity-dopamine-actions button.clarity-btn-secondary {
+  border-color: transparent;
+  color: #94a3b8;
+}
+.clarity-dopamine-actions button.clarity-btn-secondary:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+/* ── Working Memory Aid: Quick Capture ───────────────────────────────────── */
+#clarity-quick-capture {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 2147483647;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 15vh;
+  font-family: 'DM Sans', sans-serif;
+  transition: opacity 0.2s ease;
+}
+.clarity-qc-dialog {
+  background: #1e293b;
+  border: 1px solid rgba(125, 211, 252, 0.2);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 600px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  overflow: hidden;
+}
+.clarity-qc-header {
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #94a3b8;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  display: flex;
+  justify-content: space-between;
+}
+#clarity-qc-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 20px 16px;
+  font-size: 18px;
+  color: #f8fafc;
+  outline: none;
+  font-family: inherit;
+}
+#clarity-qc-input::placeholder {
+  color: #475569;
+}
+.clarity-qc-footer {
+  padding: 10px 16px;
+  font-size: 12px;
+  color: #64748b;
+  background: rgba(15, 23, 42, 0.5);
+  display: flex;
+  align-items: center;
+}
+
+
